@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <math.h>
+#include <assert.h>
 
 #include "my_stack.h"
 #include "spu.h"
@@ -33,7 +34,7 @@ int assembler(FILE* stream_in, FILE* stream_out)
             fscanf(stream_in, "%d", &arg);
             memcpy(asm_code + curr, &arg, sizeof(arg));
             asm_code[curr++] = '\n';
-            printf("%d %d\n", PUSH, arg);
+            fprintf(stream_out, "%d %d\n", PUSH, arg);
             continue;
         }
         if (strncmp(cmd, "in", strlen("in")) == 0)
@@ -50,7 +51,7 @@ int assembler(FILE* stream_in, FILE* stream_out)
         {
             asm_code[curr++] = (char)HLT;
             asm_code[curr++] = '\n';
-            printf("%d\n", HLT);
+            fprintf(stream_out, "%d\n", HLT);
             break;
         }
         for (size_t i = 0; i < (size_t)HLT; i++)
@@ -59,79 +60,99 @@ int assembler(FILE* stream_in, FILE* stream_out)
             {
                 asm_code[curr++] = i;
                 asm_code[curr++] = '\n';
-                printf("%d\n", i);
+                fprintf(stream_out, "%d\n", i);
                 continue;
             }
         }
-        /*
-        if (strncmp(cmd, "dump", strlen("dump")) == 0)
-        {
-            asm_code[curr++] = (char)DUMP;
-            asm_code[curr++] = '\n';
-            printf("%d\n", DUMP);
-            continue;
-        }
-        if (strncmp(cmd, "hld", strlen("hld")) == 0)
-        {
-            asm_code[curr++] = (char)HLT;
-            asm_code[curr++] = '\n';
-            printf("%d\n", HLT);
-            break;
-        }
-        if (strncmp(cmd, "sqrt", strlen("sqrt")) == 0)
-        {
-            asm_code[curr++] = (char)SQRT;
-            asm_code[curr++] = '\n';
-            printf("%d\n", SQRT);
-            continue;
-        }
-        if (strncmp(cmd, "cos", strlen("cos")) == 0)
-        {
-            asm_code[curr++] = (char)COS;
-            asm_code[curr++] = '\n';
-            printf("%d\n", COS);
-            continue;
-        }
-        if (strncmp(cmd, "sin", strlen("sin")) == 0)
-        {
-            asm_code[curr++] = (char)SIN;
-            asm_code[curr++] = '\n';
-            printf("%d\n", SIN);
-            continue;
-        }
-        if (strncmp(cmd, "add", strlen("add")) == 0)
-        {
-            asm_code[curr++] = (char)ADD;
-            asm_code[curr++] = '\n';
-            printf("%d\n", ADD);
-            continue;
-        }
-        if (strncmp(cmd, "sub", strlen("sub")) == 0)
-        {
-            asm_code[curr++] = (char)SUB;
-            asm_code[curr++] = '\n';
-            printf("%d\n", SUB);
-            continue;
-        }
-        if (strncmp(cmd, "mult", strlen("mult")) == 0)
-        {
-            asm_code[curr++] = (char)MULT;
-            asm_code[curr++] = '\n';
-            printf("%d\n", MULT);
-            continue;
-        }
-        if (strncmp(cmd, "div", strlen("div")) == 0)
-        {
-            asm_code[curr++] = (char)DIV;
-            asm_code[curr++] = '\n';
-            printf("%d\n", DIV);
-            continue;
-        }
-        */
     }
     printf("%s\n", asm_code);
-    fwrite(asm_code, sizeof(char), curr, stream_out);
+    //fwrite(asm_code, sizeof(char), curr, stream_out);
     return 0;
+}
+
+int* interpreter(FILE* stream)
+{
+    int* cmd_array = (int*)calloc(64, sizeof(int));
+    size_t curr = 0;
+    while (fscanf(stream, "%d", cmd_array + curr) != EOF)
+    {
+        curr++;
+    }
+    for (size_t i = 0; i <= curr; i++)
+    {
+        fprintf(stdout, "[%2d] = [%d]\n", i, cmd_array[i]);
+    }
+    return cmd_array;
+}
+
+int processor(int* cmd_array)
+{
+    assert(cmd_array);
+
+    stack_t stk = {};
+    stack_init(&stk, 8, 4);
+    size_t curr = 0;
+    while (cmd_array[curr] != HLT)
+    {
+        switch (cmd_array[curr])
+        {
+            case PUSH: {stack_push(&stk, cmd_array[curr + 1]);
+                        curr++;
+                        break;}
+            case ELEM_IN: {int arg = 0;
+                           fscanf(stdin, "%d", &arg);
+                           stack_push(&stk, arg);
+                           break;}
+            case ELEM_OUT:{int arg = 0;
+                           stack_pop(&stk, &arg);
+                           printf("%d\n", arg);
+                           break;}
+
+            case ADD: {int a = 0;
+                       int b = 0;
+                       stack_pop(&stk, &a);
+                       stack_pop(&stk, &b);
+                       stack_push(&stk, b + a);
+                       break;}
+            case SUB: {int a = 0;
+                       int b = 0;
+                       stack_pop(&stk, &a);
+                       stack_pop(&stk, &b);
+                       stack_push(&stk, b - a);
+                       break;}
+            case MULT:{int a = 0;
+                       int b = 0;
+                       stack_pop(&stk, &a);
+                       stack_pop(&stk, &b);
+                       stack_push(&stk, b * a);
+                       break;}
+            case DIV: {int a = 0;
+                       int b = 0;
+                       stack_pop(&stk, &a);
+                       stack_pop(&stk, &b);
+                       stack_push(&stk, b / a);
+                       break;}
+
+            case SQRT:{int a = 0;
+                       stack_pop(&stk, &a);
+                       stack_push(&stk, sqrt(a));
+                       break;}
+            case COS: {int a = 0;
+                       stack_pop(&stk, &a);
+                       stack_push(&stk, cos(a));
+                       break;}
+            case SIN: {int a = 0;
+                       stack_pop(&stk, &a);
+                       stack_push(&stk, sin(a));
+                       break;}
+
+            case DUMP:{STACK_DUMP(&stk, __func__);
+                       break;}
+            default:{fprintf(stderr, "ERROR: UNKNOWN COMMAND [%d]\n", cmd_array[curr]);
+                     break;}
+        }
+        curr++;
+    }
 }
 
 int run(FILE* stream)

@@ -6,8 +6,14 @@
 
 int main()
 {
-    FILE* stream = stdin; //fopen(".\\data\\programm1.txt", "r");
-    assembler(stdin, stdout);
+    FILE* stream = fopen(".\\data\\programm1.txt", "r");
+    FILE* fp = fopen(".\\data\\programm1_asm.txt", "w");
+    assembler(stream, fp);
+    fclose(fp);
+    fp = fopen(".\\data\\programm1_asm.txt", "r");
+    int* cmd_array = interpreter(fp);
+    fclose(fp);
+    processor(cmd_array);
     //run(stream);
     //fclose(stream);
     return 0;
