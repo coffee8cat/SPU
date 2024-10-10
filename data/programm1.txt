@@ -1,0 +1,16 @@
+push 30
+push 70
+add
+push 80
+push 60
+sub
+dump
+
+out
+sqrt
+push 30
+push 5
+div
+dump
+
+hlt
