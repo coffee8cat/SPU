@@ -91,13 +91,13 @@ int processor(int* cmd_array)
 
     stack_t stk = {};
     stack_init(&stk, 8, 4);
-    size_t curr = 0;
-    while (cmd_array[curr] != HLT)
+    size_t ip = 0;
+    while (cmd_array[ip] != HLT)
     {
-        switch (cmd_array[curr])
+        switch (cmd_array[ip])
         {
-            case PUSH: {stack_push(&stk, cmd_array[curr + 1]);
-                        curr++;
+            case PUSH: {stack_push(&stk, cmd_array[ip + 1]);
+                        ip++;
                         break;}
             case ELEM_IN: {int arg = 0;
                            fscanf(stdin, "%d", &arg);
@@ -148,10 +148,10 @@ int processor(int* cmd_array)
 
             case DUMP:{STACK_DUMP(&stk, __func__);
                        break;}
-            default:{fprintf(stderr, "ERROR: UNKNOWN COMMAND [%d]\n", cmd_array[curr]);
+            default:{fprintf(stderr, "ERROR: UNKNOWN COMMAND [%d]\n", cmd_array[ip]);
                      break;}
         }
-        curr++;
+        ip++;
     }
 }
 
