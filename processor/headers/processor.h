@@ -11,9 +11,6 @@ struct processor_data
     int* registers;
 };
 
-#define CURRENT_VERSION 2
-#define PROC_SIGNATURE 4341
-
 int check_compatibility(FILE* stream);
 int* make_cmd_array(processor_data* proc, FILE* stream);
 int processor(processor_data* proc);

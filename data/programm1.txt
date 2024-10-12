@@ -1,9 +1,11 @@
 2
 4341
+15
 push 30
 push 70
 add
-push 80
+pop  AX
+push BX
 push 60
 sub
 dump

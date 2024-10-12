@@ -9,64 +9,137 @@
 #include "spu.h"
 
 const char *instructions_list[] {
-    "push", "in", "out",
+    //"push"
+    "in", "out",
     "add", "sub", "mult", "div",
     "sqrt", "cos", "sin",
     "dump",
-    "hlt"
+    //"hlt"
 };
+
+
+int check_compatibility(FILE* stream)
+{
+    int version = 0;
+    int signature = 0;
+    fscanf(stream, "%d", &version);
+    fscanf(stream, "%d", &signature);
+    if (version != CURRENT_VERSION)
+    {
+        fprintf(stderr, "INVALID VERSION\n");
+        return 1;
+    }
+    if (signature != PROC_SIGNATURE)
+    {
+        fprintf(stderr, "INVALID SIGNATURE\n");
+        return 2;
+    }
+
+    return 0;
+}
 
 int assembler(FILE* stream_in, FILE* stream_out)
 {
+    assert(stream_in);
+    assert(stream_out);
+
     stack_t stk = {};
     stack_init(&stk, 8, 4);
-    char asm_code[512] = "";
+
+    size_t num_of_cmds = 0;
+    fscanf(stream_in, "%d", &num_of_cmds);
+    int* asm_code = (int*)calloc(num_of_cmds * 2, sizeof(int));
     size_t curr = 0;
-    while (1)
+    size_t cmds_counter = 0;
+    while (cmds_counter < num_of_cmds)
     {
         char cmd[32] = "";
         fscanf(stream_in, "%s", cmd);
 
         if (strncmp(cmd, "push", strlen("push")) == 0)
         {
-            int arg = 0;
-            asm_code[curr++] = (char)PUSH;
-            asm_code[curr++] = ' ';
-            fscanf(stream_in, "%d", &arg);
-            memcpy(asm_code + curr, &arg, sizeof(arg));
-            asm_code[curr++] = '\n';
-            fprintf(stream_out, "%d %d\n", PUSH, arg);
+            int arg = -1;
+            char reg[2] = {};
+            if(fscanf(stream_in, "%d", &arg) != 0)
+            {
+                asm_code[curr++] = PUSH_NUM;
+                fprintf(stream_out, "%d ", PUSH_NUM);
+            }
+            else
+            {
+                fscanf(stream_in, " %s", &reg);
+                printf("reg: %s[%d]\n", reg, reg[0] + reg[1]);
+                switch(reg[0] + reg[1])
+                {
+                    case 'A' + 'X': arg = AX; break;
+                    case 'B' + 'X': arg = BX; break;
+                    case 'C' + 'X': arg = CX; break;
+                    case 'D' + 'X': arg = DX; break;
+                    default: fprintf(stderr, "Incorrect argument for POP: [%s]\n", reg);
+                }
+                fprintf(stream_out, "%d ", PUSH_REG);
+            }
+            asm_code[curr++] = arg;
+            //memcpy(asm_code + curr, &arg, sizeof(arg));
+            fprintf(stream_out, "%d\n", arg);
+            cmds_counter++;
             continue;
         }
         if (strncmp(cmd, "in", strlen("in")) == 0)
         {
             int arg = 0;
-            asm_code[curr++] = (char)ELEM_IN;
-            asm_code[curr++] = ' ';
+            asm_code[curr++] = ELEM_IN;
+            fprintf(stream_out, "%d\n", ELEM_IN);
             fscanf(stdin, "%d", &arg);
-            memcpy(asm_code + curr, &arg, sizeof(arg));
-            asm_code[curr++] = '\n';
+            asm_code[curr++] = arg;
+            //memcpy(asm_code + curr, &arg, sizeof(arg));
+            //asm_code[curr++] = '\n';
+            cmds_counter++;
+            continue;
+        }
+        if (strncmp(cmd, "pop", strlen("pop")) == 0)
+        {
+            char reg[2] = {};
+            int arg = -1;
+            fscanf(stream_in, " %s", &reg);
+            printf("[reg] = %s\n", reg);
+
+            switch(reg[0] + reg[1])
+            {
+                case 'A' + 'X': arg = AX; break;
+                case 'B' + 'X': arg = BX; break;
+                case 'C' + 'X': arg = CX; break;
+                case 'D' + 'X': arg = DX; break;
+                default: fprintf(stderr, "Incorrect argument for POP: [%s]\n", reg);
+            }
+            asm_code[curr++] = POP;
+            asm_code[curr++] = arg;
+            printf("arg: %d\n", arg);
+            fprintf(stream_out, "%d %d\n", POP, arg);
             continue;
         }
         if (strncmp(cmd, "hlt", strlen("hlt")) == 0)
         {
-            asm_code[curr++] = (char)HLT;
-            asm_code[curr++] = '\n';
+            asm_code[curr++] = HLT;
             fprintf(stream_out, "%d\n", HLT);
+            cmds_counter++;
             break;
         }
-        for (size_t i = 0; i < (size_t)HLT; i++)
+        for (size_t i = 0; i <= (size_t)DUMP; i++)
         {
             if (strncmp(cmd, instructions_list[i], strlen(instructions_list[i])) == 0)
             {
-                asm_code[curr++] = i;
-                asm_code[curr++] = '\n';
                 fprintf(stream_out, "%d\n", i);
+                asm_code[curr++] = i;
+                cmds_counter++;
                 continue;
             }
         }
     }
-    printf("%s\n", asm_code);
+    for (size_t i = 0; i < curr; i++)
+    {
+        printf("%d ", asm_code[i]);
+    }
     //fwrite(asm_code, sizeof(char), curr, stream_out);
     return 0;
 }
