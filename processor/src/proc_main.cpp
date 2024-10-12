@@ -11,7 +11,7 @@ int main(int argc, char *const argv[])
     char* input_file  = (char*)calloc(32, sizeof(char));
     char* output_file = (char*)calloc(32, sizeof(char));
     check_flags(input_file, output_file, argc, argv);
-
+    printf("here\n");
     if (strlen(input_file) == 0)
         stream_in = stdin;
     else
@@ -23,12 +23,14 @@ int main(int argc, char *const argv[])
         stream_out = stdout;
 
     processor_data proc = {};
+    printf("got here\n");
 
     if (check_compatibility(stream_in) == 0)
     {
         make_cmd_array(&proc, stream_in);
         processor(&proc);
     }
+
 
     return 0;
 }

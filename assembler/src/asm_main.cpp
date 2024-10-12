@@ -12,7 +12,7 @@ int main(int argc, char *const argv[])
     FILE* stream_in  = fopen(input_file, "r");
     FILE* stream_out = fopen(output_file, "w");
 
-    if (check_compatibility(stream_in) == 0)
+    if (check_compatibility(stream_in, stream_out) == 0)
     {
         assembler(stream_in, stream_out);
     }

@@ -18,12 +18,12 @@ const char *instructions_list[] {
 };
 
 
-int check_compatibility(FILE* stream)
+int check_compatibility(FILE* stream_in, FILE* stream_out)
 {
     int version = 0;
     int signature = 0;
-    fscanf(stream, "%d", &version);
-    fscanf(stream, "%d", &signature);
+    fscanf(stream_in, "%d", &version);
+    fscanf(stream_in, "%d", &signature);
     if (version != CURRENT_VERSION)
     {
         fprintf(stderr, "INVALID VERSION\n");
@@ -35,6 +35,7 @@ int check_compatibility(FILE* stream)
         return 2;
     }
 
+    fprintf(stream_out, "%d\n%d\n", version, signature);
     return 0;
 }
 
@@ -48,7 +49,8 @@ int assembler(FILE* stream_in, FILE* stream_out)
 
     size_t num_of_cmds = 0;
     fscanf(stream_in, "%d", &num_of_cmds);
-    int* asm_code = (int*)calloc(num_of_cmds * 2, sizeof(int));
+    fprintf(stream_out, "%d\n", num_of_cmds);
+    int* asm_code = (int*)calloc(num_of_cmds * 2 + 3, sizeof(int));
     size_t curr = 0;
     size_t cmds_counter = 0;
     while (cmds_counter < num_of_cmds)
@@ -62,13 +64,12 @@ int assembler(FILE* stream_in, FILE* stream_out)
             char reg[2] = {};
             if(fscanf(stream_in, "%d", &arg) != 0)
             {
-                asm_code[curr++] = PUSH_NUM;
-                fprintf(stream_out, "%d ", PUSH_NUM);
+                asm_code[curr++] = PUSH | NUM_ARG_MASK;
+                fprintf(stream_out, "%d ", PUSH | NUM_ARG_MASK);
             }
             else
             {
                 fscanf(stream_in, " %s", &reg);
-                printf("reg: %s[%d]\n", reg, reg[0] + reg[1]);
                 switch(reg[0] + reg[1])
                 {
                     case 'A' + 'X': arg = AX; break;
@@ -77,7 +78,8 @@ int assembler(FILE* stream_in, FILE* stream_out)
                     case 'D' + 'X': arg = DX; break;
                     default: fprintf(stderr, "Incorrect argument for POP: [%s]\n", reg);
                 }
-                fprintf(stream_out, "%d ", PUSH_REG);
+                asm_code[curr++] = PUSH | REG_ARG_MASK;
+                fprintf(stream_out, "%d ", PUSH | REG_ARG_MASK);
             }
             asm_code[curr++] = arg;
             //memcpy(asm_code + curr, &arg, sizeof(arg));
@@ -102,7 +104,6 @@ int assembler(FILE* stream_in, FILE* stream_out)
             char reg[2] = {};
             int arg = -1;
             fscanf(stream_in, " %s", &reg);
-            printf("[reg] = %s\n", reg);
 
             switch(reg[0] + reg[1])
             {
@@ -112,10 +113,9 @@ int assembler(FILE* stream_in, FILE* stream_out)
                 case 'D' + 'X': arg = DX; break;
                 default: fprintf(stderr, "Incorrect argument for POP: [%s]\n", reg);
             }
-            asm_code[curr++] = POP;
+            asm_code[curr++] = POP | REG_ARG_MASK;
             asm_code[curr++] = arg;
-            printf("arg: %d\n", arg);
-            fprintf(stream_out, "%d %d\n", POP, arg);
+            fprintf(stream_out, "%d %d\n", POP | REG_ARG_MASK, arg);
             continue;
         }
         if (strncmp(cmd, "hlt", strlen("hlt")) == 0)

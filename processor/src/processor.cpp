@@ -24,7 +24,6 @@ int check_compatibility(FILE* stream)
         fprintf(stderr, "INVALID SIGNATURE\n");
         return 2;
     }
-
     return 0;
 }
 
@@ -33,7 +32,9 @@ int* make_cmd_array(processor_data* proc, FILE* stream)
     assert(proc);
     assert(stream);
 
-    proc -> cmd_array = (int*)calloc(64, sizeof(int));
+    size_t num_of_cmds = 0;
+    fscanf(stream, "%d", &num_of_cmds);
+    proc -> cmd_array = (int*)calloc(2 * num_of_cmds, sizeof(int));
     size_t curr = 0;
     while (fscanf(stream, "%d", proc-> cmd_array + curr) != EOF)
     {
@@ -54,11 +55,33 @@ int processor(processor_data* proc)
     proc -> ip = 0;
     while (proc -> cmd_array[proc -> ip] != HLT)
     {
-        switch (proc -> cmd_array[proc -> ip])
+        int cmd = proc -> cmd_array[proc -> ip];
+        printf("{cmd} = [%d]\n", cmd);
+        switch (cmd & CMD_MASK)
         {
-            case PUSH: {stack_push(&proc -> stack, proc -> cmd_array[proc -> ip + 1]);
+            case PUSH: {if (cmd & NUM_ARG_MASK == NUM_ARG_MASK)
+                        {
+                            stack_push(&proc -> stack, proc -> cmd_array[proc -> ip + 1]);
+                            proc -> ip++;
+                            break;
+                        }
+                        if (cmd & REG_ARG_MASK == REG_ARG_MASK)
+                        {
+                            int reg = proc -> cmd_array[proc -> ip + 1];
+                            int arg = proc -> registers[reg];
+                            stack_push(&proc -> stack, arg);
+                            proc -> ip++;
+                        }
+                        break;}
+            case POP:  {int arg = 0;
+                        int reg = proc -> cmd_array[proc -> ip + 1];
+                        stack_pop(&proc -> stack, &arg);
+                        proc -> registers[reg] = arg;
                         proc -> ip++;
                         break;}
+            case JMP:  {proc -> ip = proc -> cmd_array[proc -> ip + 1];
+                        break;}
+            case JA:   {break;}
             case ELEM_IN: {int arg = 0;
                            fscanf(stdin, "%d", &arg);
                            stack_push(&proc -> stack, arg);
@@ -108,7 +131,7 @@ int processor(processor_data* proc)
 
             case DUMP:{STACK_DUMP(&proc -> stack, __func__);
                        break;}
-            default:{fprintf(stderr, "ERROR: UNKNOWN COMMAND [%d]\n", proc -> cmd_array[proc -> ip]);
+            default:{fprintf(stderr, "ERROR: UNKNOWN COMMAND [%d]\n", cmd);
                      break;}
         }
         proc -> ip++;

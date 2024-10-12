@@ -9,12 +9,16 @@
 #define CX 2
 #define DX 3
 
+#define CMD_MASK     0b00011111
+#define NUM_ARG_MASK 0b00100000
+#define REG_ARG_MASK 0b01000000
+#define MEM_ARG_MASK 0b10000000
+
 enum instructions {
-    PUSH_NUM = 0b00100001, //33
-    PUSH_REG = 0b01000001, //65
-    POP      = 0b01000010, //66
-    JMP      = 0b00100010, //34
-    JA       = 0b00100011, //35
+    PUSH     = 0b00011011, //27
+    POP      = 0b00011100, //28
+    JMP      = 0b00011101, //29
+    JA       = 0b00011110, //30
     ELEM_IN  = 0b00000000, //0
     ELEM_OUT = 0b00000001, //1
     ADD      = 0b00000010, //2
