@@ -9,7 +9,7 @@ enum instructions {
     HLT
 };
 
-int assembler(FILE* stream_in, FILE* stream_out);
+//int assembler(FILE* stream_in, FILE* stream_out);
 int* interpreter(FILE* stream);
 int processor(int* cmd_array);
 int run(FILE* stream);
