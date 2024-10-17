@@ -26,7 +26,6 @@ char* readfile(FILE* fp, size_t* text_size, char* text)
         return NULL;
     }
     fread(text, sizeof(char), *text_size, fp);
-    fclose(fp);
     *(text + *text_size - 1) = '\n';
     fprintf(stderr, "%s", text);
     return text;
@@ -41,7 +40,7 @@ size_t get_file_size(FILE* fp)
     return (size_t)st.st_size;
 }
 
-char** make_pointers_array(FILE* input_stream)
+char** make_pointers_array(FILE* input_stream, size_t* num_of_cmds)
 {
     assert(input_stream);
 
@@ -85,6 +84,7 @@ char** make_pointers_array(FILE* input_stream)
             curr_len++;
     }
 
+    *num_of_cmds = line_num - 2;
     for (size_t i = 0; i < line_num - 2; i++)
     {
         printf("[%3d](%p): %s\n", i, &array[i], array[i]);

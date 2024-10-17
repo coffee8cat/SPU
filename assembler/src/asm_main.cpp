@@ -14,15 +14,17 @@ int main(int argc, char *const argv[])
     FILE* stream_in  = fopen(input_file, "r");
     FILE* stream_out = fopen(output_file, "w");
 
-    char** array = make_pointers_array(stream_in);
+    size_t num_of_cmds = 0;
+    char** array = make_pointers_array(stream_in, &num_of_cmds);
+    int* asm_code = (int*)calloc(num_of_cmds * 2 + 3, sizeof(int));
+    asm_code[2] = num_of_cmds;
 
-    fclose(stream_out);
-    /*if (check_compatibility(stream_in, stream_out) == 0)
+    if (check_compatibility(stream_in, asm_code) == 0)
     {
-        assembler(stream_in, stream_out);
+        assembler(array, asm_code, num_of_cmds);
     }
     fclose(stream_in);
     fclose(stream_out);
-    */
+
     return 0;
 }
