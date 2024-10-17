@@ -1,20 +1,21 @@
 2
 4341
-15
-push 30
-push 70
+14
+push 0
+pop  AX
+
+push  AX
+push  AX
+mult
+out
+
+push AX
+push 1
 add
 pop  AX
-push BX
-push 60
-sub
-dump
 
-out
-sqrt
-push 30
-push 5
-div
-dump
+push AX
+push 10
 
+JA 4
 hlt

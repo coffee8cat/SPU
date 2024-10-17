@@ -118,6 +118,22 @@ int assembler(FILE* stream_in, FILE* stream_out)
             fprintf(stream_out, "%d %d\n", POP | REG_ARG_MASK, arg);
             continue;
         }
+        if (strncmp(cmd, "JMP", strlen("JMP")) == 0)
+        {
+            asm_code[curr++] = JMP | NUM_ARG_MASK;
+            int arg = 0;
+            fscanf(stream_in, "%d", &arg);
+            asm_code[curr++] = arg;
+            fprintf(stream_out, "%d %d\n", JMP | NUM_ARG_MASK, arg);
+        }
+        if (strncmp(cmd, "JA", strlen("JA")) == 0)
+        {
+            asm_code[curr++] = JA | NUM_ARG_MASK;
+            int arg = 0;
+            fscanf(stream_in, "%d", &arg);
+            asm_code[curr++] = arg;
+            fprintf(stream_out, "%d %d\n", JA | NUM_ARG_MASK, arg);
+        }
         if (strncmp(cmd, "hlt", strlen("hlt")) == 0)
         {
             asm_code[curr++] = HLT;

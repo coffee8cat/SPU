@@ -7,7 +7,7 @@
 
 #include "getoptions.h"
 
-bool check_flags(char* input_file, char* output_file, int argc, char *const argv[])
+bool handle_flags(char* input_file, char* output_file, int argc, char *const argv[])
 {
     assert(input_file);
     assert(output_file);
