@@ -10,6 +10,7 @@
 #define DX 3
 
 #define CMD_MASK     0b00011111
+#define TYPE_MASK    0b11100000
 #define NUM_ARG_MASK 0b00100000
 #define REG_ARG_MASK 0b01000000
 #define MEM_ARG_MASK 0b10000000

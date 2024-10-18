@@ -16,8 +16,10 @@ int main(int argc, char *const argv[])
 
     size_t num_of_cmds = 0;
     char** array = make_pointers_array(stream_in, &num_of_cmds);
-    int* asm_code = (int*)calloc(num_of_cmds * 2 + 3, sizeof(int));
-    asm_code[2] = num_of_cmds;
+    printf("Number of cmds: [%d]\n", num_of_cmds);
+
+    int* asm_code = (int*)calloc(num_of_cmds * 3 + 3, sizeof(int));
+    asm_code[2] = num_of_cmds - 2;
 
     if (check_compatibility(stream_in, asm_code) == 0)
     {

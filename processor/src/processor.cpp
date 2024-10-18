@@ -55,23 +55,11 @@ int processor(processor_data* proc)
     proc -> ip = 0;
     while (proc -> cmd_array[proc -> ip] != HLT)
     {
-        int cmd = proc -> cmd_array[proc -> ip];
+        int cmd = proc -> cmd_array[proc -> ip] & CMD_MASK;
         printf("{cmd} = [%d]\n", cmd);
-        switch (cmd & CMD_MASK)
+        switch (cmd)
         {
-            case PUSH: {if (cmd & NUM_ARG_MASK == NUM_ARG_MASK)
-                        {
-                            stack_push(&proc -> stack, proc -> cmd_array[proc -> ip + 1]);
-                            proc -> ip++;
-                            break;
-                        }
-                        if (cmd & REG_ARG_MASK == REG_ARG_MASK)
-                        {
-                            int reg = proc -> cmd_array[proc -> ip + 1];
-                            int arg = proc -> registers[reg];
-                            stack_push(&proc -> stack, arg);
-                            proc -> ip++;
-                        }
+            case PUSH: {stack_push(&proc -> stack, get_push_arg(&proc));
                         break;}
             case POP:  {int arg = 0;
                         int reg = proc -> cmd_array[proc -> ip + 1];
@@ -80,15 +68,19 @@ int processor(processor_data* proc)
                         proc -> ip++;
                         break;}
             case JMP:  {proc -> ip = proc -> cmd_array[proc -> ip + 1];
+                        proc.ip++;
                         break;}
             case JA:   {break;}
+
             case ELEM_IN: {int arg = 0;
                            fscanf(stdin, "%d", &arg);
                            stack_push(&proc -> stack, arg);
+                           proc.ip++;
                            break;}
             case ELEM_OUT:{int arg = 0;
                            stack_pop(&proc -> stack, &arg);
                            printf("%d\n", arg);
+                           proc.ip++;
                            break;}
 
             case ADD: {int a = 0;
@@ -96,44 +88,65 @@ int processor(processor_data* proc)
                        stack_pop(&proc -> stack, &a);
                        stack_pop(&proc -> stack, &b);
                        stack_push(&proc -> stack, b + a);
+                       proc.ip++;
                        break;}
             case SUB: {int a = 0;
                        int b = 0;
                        stack_pop(&proc -> stack, &a);
                        stack_pop(&proc -> stack, &b);
                        stack_push(&proc -> stack, b - a);
+                       proc.ip++;
                        break;}
             case MULT:{int a = 0;
                        int b = 0;
                        stack_pop(&proc -> stack, &a);
                        stack_pop(&proc -> stack, &b);
                        stack_push(&proc -> stack, b * a);
+                       proc.ip++;
                        break;}
             case DIV: {int a = 0;
                        int b = 0;
                        stack_pop(&proc -> stack, &a);
                        stack_pop(&proc -> stack, &b);
                        stack_push(&proc -> stack, b / a);
+                       proc.ip++;
                        break;}
 
             case SQRT:{int a = 0;
                        stack_pop(&proc -> stack, &a);
                        stack_push(&proc -> stack, sqrt(a));
+                       proc.ip++;
                        break;}
             case COS: {int a = 0;
                        stack_pop (&proc -> stack, &a);
                        stack_push(&proc -> stack, cos(a));
+                       proc.ip++;
                        break;}
             case SIN: {int a = 0;
                        stack_pop (&proc -> stack, &a);
                        stack_push(&proc -> stack, sin(a));
+                       proc.ip++;
                        break;}
 
             case DUMP:{STACK_DUMP(&proc -> stack, __func__);
+                       proc.ip++;
                        break;}
             default:{fprintf(stderr, "ERROR: UNKNOWN COMMAND [%d]\n", cmd);
                      break;}
         }
-        proc -> ip++;
     }
+}
+
+int get_push_arg(processor_data* proc)
+{
+    assert(proc);
+
+    char arg_type = proc -> cmd_array[proc -> ip] & TYPE_MASK;
+    proc -> ip++;
+    int arg_value = 0;
+    if (arg_type & NUM_ARG_MASK) { arg_value =  proc -> cmd_array[(proc -> ip)++];}
+    if (arg_type & REG_ARG_MASK) { arg_value += proc -> registers[proc -> cmd_array[(proc -> ip)++]];}
+    if (arg_type & MEM_ARG_MASK) { arg_value =  proc -> RAM[arg_value];}
+
+    return arg_value;
 }

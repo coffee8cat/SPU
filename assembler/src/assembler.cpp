@@ -48,31 +48,48 @@ int translate_push(int* asm_code, size_t* asm_code_counter, char** array, size_t
     assert(asm_code_counter);
     assert(array);
 
-    char* arg = array[curr_cmd] + strlen("push ");
-    printf("start: [%p] [%c]\n"
-           "arg:   [%p] [%c]\n", array[curr_cmd], *array[curr_cmd], arg, *arg);
-    int arg_value = -1;
-    char reg[2] = {};
-    if (*arg - '0' > 9)
+    char cmd = PUSH;
+    char* arg_ptr = array[curr_cmd] + strlen("push ");
+    //printf("start: [%p] [%c]\n"
+    //       "arg:   [%p] [%c]\n"
+    //       "counter[%d]\n", array[curr_cmd], *array[curr_cmd], arg, *arg, *asm_code_counter);
+
+    int reg_arg_value = -1;
+    int num_arg_value = -1;
+    if (*arg_ptr == '[')
     {
-        switch(*arg + *(arg + 1))
-        {
-            case 'A' + 'X': arg_value = AX; break;
-            case 'B' + 'X': arg_value = BX; break;
-            case 'C' + 'X': arg_value = CX; break;
-            case 'D' + 'X': arg_value = DX; break;
-            default: fprintf(stderr, "Incorrect argument for PUSH: [%s]\n", arg);
-        }
-        asm_code[*asm_code_counter++] = PUSH | REG_ARG_MASK;
-        fprintf(stdout, "%d ", PUSH | REG_ARG_MASK);
+        cmd = cmd | MEM_ARG_MASK;
+        arg_ptr++;
+        if (*(array[curr_cmd] + strlen(array[curr_cmd]) - 1) != ']')
+            fprintf(stderr, "Square bracket not closed in line %d: %s\n", curr_cmd, array[curr_cmd]);
     }
-    else
+    if (*arg_ptr - '0' > 9 | *arg_ptr - '0' < 0)
     {
-        arg_value = atoi(arg);
-        asm_code[*asm_code_counter++] = PUSH | NUM_ARG_MASK;
+        switch(*arg_ptr + *(arg_ptr + 1))
+        {
+            case 'A' + 'X': reg_arg_value = AX; break;
+            case 'B' + 'X': reg_arg_value = BX; break;
+            case 'C' + 'X': reg_arg_value = CX; break;
+            case 'D' + 'X': reg_arg_value = DX; break;
+            default: fprintf(stderr, "Incorrect argument for PUSH: [%s]\n", arg_ptr);
+        }
+        arg_ptr = arg_ptr + 2;
+        if (*arg_ptr == '+')
+            arg_ptr++;
+
+        cmd = cmd | REG_ARG_MASK;
+    }
+    if (*arg_ptr - '0' <= 9 & *arg_ptr - '0' >= 0)
+    {
+        num_arg_value = atoi(arg_ptr);
+        cmd = cmd | NUM_ARG_MASK;
     }
 
-    asm_code[*asm_code_counter++] = arg_value;
+    asm_code[(*asm_code_counter)++] = cmd;
+    printf("%d ", cmd);
+    if (cmd & REG_ARG_MASK) { asm_code[(*asm_code_counter)++] = reg_arg_value; printf("%d ", reg_arg_value);}
+    if (cmd & NUM_ARG_MASK) { asm_code[(*asm_code_counter)++] = num_arg_value; printf("%d ", num_arg_value);}
+    printf("\n");
 
     return 0;
 }
@@ -84,10 +101,10 @@ int translate_in(int* asm_code, size_t* asm_code_counter, char** array)
     assert(array);
 
     int arg = 0;
-    asm_code[*asm_code_counter++] = ELEM_IN;
+    asm_code[(*asm_code_counter)++] = ELEM_IN;
     fprintf(stdout, "%d\n", ELEM_IN);
     fscanf(stdin, "%d", &arg);
-    asm_code[*asm_code_counter++] = arg;
+    asm_code[(*asm_code_counter)++] = arg;
 
     return 0;
 }
@@ -98,7 +115,7 @@ int translate_pop(int* asm_code, size_t* asm_code_counter, char** array, size_t 
     assert(asm_code_counter);
     assert(array);
 
-    char* arg = array[curr_cmd] + strlen("push ");
+    char* arg = array[curr_cmd] + strlen("pop ");
     printf("start: [%p] [%c]\n"
            "arg:   [%p] [%c]\n", array[curr_cmd], *array[curr_cmd], arg, *arg);
     int arg_value = -1;
@@ -110,9 +127,9 @@ int translate_pop(int* asm_code, size_t* asm_code_counter, char** array, size_t 
         case 'D' + 'X': arg_value = DX; break;
         default: fprintf(stderr, "Incorrect argument for POP: [%s]\n", arg);
     }
-    asm_code[*asm_code_counter++] = POP | REG_ARG_MASK;
-    asm_code[*asm_code_counter++] = arg_value;
-    fprintf(stdout, "%d %d", POP | REG_ARG_MASK, arg_value);
+    asm_code[(*asm_code_counter)++] = POP | REG_ARG_MASK;
+    asm_code[(*asm_code_counter)++] = arg_value;
+    fprintf(stdout, "%d %d\n", POP | REG_ARG_MASK, arg_value);
 
     return 0;
 }
@@ -124,8 +141,8 @@ int translate_JMP(int* asm_code, size_t* asm_code_counter, char** array, size_t 
     assert(array);
 
     char* arg = array[curr_cmd] + strlen("JMP ");
-    asm_code[*asm_code_counter++] = JMP | NUM_ARG_MASK;
-    asm_code[*asm_code_counter++] = atoi(arg);
+    asm_code[(*asm_code_counter)++] = JMP | NUM_ARG_MASK;
+    asm_code[(*asm_code_counter)++] = atoi(arg);
 
     fprintf(stdout, "%d %d\n", JMP | NUM_ARG_MASK, arg);
     return 0;
@@ -138,11 +155,17 @@ int translate_JA(int* asm_code, size_t* asm_code_counter, char** array, size_t c
     assert(array);
 
     char* arg = array[curr_cmd] + strlen("JA ");
-    asm_code[*asm_code_counter++] = JA | NUM_ARG_MASK;
-    asm_code[*asm_code_counter++] = atoi(arg);
+    asm_code[(*asm_code_counter)++] = JA | NUM_ARG_MASK;
+    asm_code[(*asm_code_counter)++] = atoi(arg);
 
     fprintf(stdout, "%d %d\n", JA | NUM_ARG_MASK, arg);
     return 0;
+}
+
+
+int handle_labels(int* asm_code, size_t* asm_code_counter, char** array, size_t curr_cmd)
+{
+
 }
 
 int assembler(char** array, int* asm_code, size_t num_of_cmds)
@@ -150,15 +173,26 @@ int assembler(char** array, int* asm_code, size_t num_of_cmds)
     assert(array);
     assert(asm_code);
 
-    stack_t stk = {};
-    stack_init(&stk, 8, 4);
+    label* labels = {};
 
-    size_t asm_code_counter = 0;
+    printf("asm_code [%p]\n"
+           "array    [%p]\n", asm_code, array);
+
+    size_t asm_code_counter = 3;
     for (size_t curr_cmd = 2; curr_cmd < num_of_cmds; curr_cmd++)
     {
+        printf("current cmd: %d [%s]\n", curr_cmd, array[curr_cmd]);
+        printf("counter: %d\n", asm_code_counter);
+
+        if (strchr(array[curr_cmd], ':') != NULL)
+        {
+            handle_labels(asm_code, &asm_code_counter, array, curr_cmd);
+            continue;
+        }
         if (strncmp(array[curr_cmd], "push", strlen("push")) == 0)
         {
             translate_push(asm_code, &asm_code_counter, array, curr_cmd);
+            printf("counter after push [%d]\n", asm_code_counter);
             continue;
         }
         if (strncmp(array[curr_cmd], "in", strlen("in")) == 0)
@@ -181,6 +215,12 @@ int assembler(char** array, int* asm_code, size_t num_of_cmds)
             translate_JA(asm_code, &asm_code_counter, array, curr_cmd);
             continue;
         }
+        if (strncmp(array[curr_cmd], "hlt", strlen("hlt")) == 0)
+        {
+            asm_code[asm_code_counter++] = HLT;
+            printf("%d\n", HLT);
+            continue;
+        }
         for (size_t i = 0; i <= (size_t)DUMP; i++)
         {
             if (strncmp(array[curr_cmd], instructions_list[i], strlen(instructions_list[i])) == 0)
@@ -190,7 +230,6 @@ int assembler(char** array, int* asm_code, size_t num_of_cmds)
                 continue;
             }
         }
-    printf("counter: %d\n", asm_code_counter);
     }
     /*
     while (cmds_counter < num_of_cmds)

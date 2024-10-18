@@ -1,18 +1,17 @@
 2
 4341
-14
 push 0
-pop  AX
+pop AX
 
-push  AX
-push  AX
+push [AX+5]
+push AX
 mult
 out
 
 push AX
 push 1
 add
-pop  AX
+pop AX
 
 push AX
 push 10
