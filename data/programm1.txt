@@ -8,6 +8,8 @@ push AX
 mult
 out
 
+JMP next:
+
 push AX
 push 1
 add
@@ -16,5 +18,12 @@ pop AX
 push AX
 push 10
 
+next:
 JA 4
 hlt
+
+    call metka:
+metka:
+
+JMP next:
+

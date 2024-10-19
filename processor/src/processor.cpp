@@ -8,6 +8,13 @@
 #include "processor.h"
 #include "spu.h"
 
+processor_data* proc_ctor()
+{
+    processor_data proc = {};
+    proc.ip = 0;
+    stack_init(proc.stack, 8, 4);
+}
+
 int check_compatibility(FILE* stream)
 {
     int version = 0;
@@ -34,7 +41,7 @@ int* make_cmd_array(processor_data* proc, FILE* stream)
 
     size_t num_of_cmds = 0;
     fscanf(stream, "%d", &num_of_cmds);
-    proc -> cmd_array = (int*)calloc(2 * num_of_cmds, sizeof(int));
+    proc -> cmd_array = (int*)calloc(2 * num_of_cmds, sizeof(int)); //
     size_t curr = 0;
     while (fscanf(stream, "%d", proc-> cmd_array + curr) != EOF)
     {
@@ -51,8 +58,6 @@ int processor(processor_data* proc)
 {
     assert(proc);
 
-    stack_init(&proc -> stack, 8, 4);
-    proc -> ip = 0;
     while (proc -> cmd_array[proc -> ip] != HLT)
     {
         int cmd = proc -> cmd_array[proc -> ip] & CMD_MASK;

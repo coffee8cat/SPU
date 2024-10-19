@@ -7,12 +7,12 @@
 
 int main(int argc, char *const argv[])
 {
-    char* input_file  = (char*)calloc(32, sizeof(char));
+    char* input_file  = (char*)calloc(32, sizeof(char)); // memory
     char* output_file = (char*)calloc(32, sizeof(char));
 
     handle_flags(input_file, output_file, argc, argv);
     FILE* stream_in  = fopen(input_file, "r");
-    FILE* stream_out = fopen(output_file, "w");
+    FILE* stream_out = fopen(output_file, "w"); // check
 
     size_t num_of_cmds = 0;
     char** array = make_pointers_array(stream_in, &num_of_cmds);
