@@ -14,7 +14,7 @@ const char *instructions_list[] {
     "in", "out",
     "add", "sub", "mult", "div",
     "sqrt", "cos", "sin",
-    "dump", "rtn"
+    "dump", "RTN"
     //"hlt"
 };
 

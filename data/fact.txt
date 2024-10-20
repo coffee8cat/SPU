@@ -7,6 +7,10 @@ pop AX
 
 CALL fact:
 
+push AX
+out
+hlt
+
 fact:
 push BX
 push AX
@@ -23,9 +27,7 @@ push BX
 
 JA next:
 CALL fact:
-RTN
 
 next:
-push AX
-out
-hlt
+RTN
+

@@ -114,7 +114,6 @@ int processor(processor_data* proc)
             case ELEM_IN: {int arg = 0;
                            fscanf(stdin, "%d", &arg);
                            stack_push(&proc -> data_stack, arg);
-                           printf("%d in\n", arg);
                            proc -> ip++;
                            break;}
             case ELEM_OUT:{int arg = 0;
