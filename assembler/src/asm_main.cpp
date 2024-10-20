@@ -21,10 +21,12 @@ int main(int argc, char *const argv[])
     int* asm_code = (int*)calloc(num_of_cmds * 3 + 3, sizeof(int));
     asm_code[2] = num_of_cmds - 2;
 
+    size_t code_size = 0;
     if (check_compatibility(stream_in, asm_code) == 0)
     {
-        assembler(array, asm_code, num_of_cmds);
+        code_size = assembler(array, asm_code, num_of_cmds);
     }
+    fwrite(asm_code, sizeof(int), code_size, stream_out);
     fclose(stream_in);
     fclose(stream_out);
 

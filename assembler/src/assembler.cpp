@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <math.h>
 #include <assert.h>
+#include <TXLib.h>
 
 #include "my_stack.h"
 #include "assembler.h"
@@ -309,7 +310,7 @@ int fix_code(label* fixup, label* labels, int* asm_code)
     return 0;
 }
 
-int assembler(char** array, int* asm_code, size_t num_of_cmds)
+size_t assembler(char** array, int* asm_code, size_t num_of_cmds)
 {
     assert(array);
     assert(asm_code);
@@ -390,8 +391,10 @@ int assembler(char** array, int* asm_code, size_t num_of_cmds)
     {
         printf("%4d ", asm_code[i]);
     }
-    //fwrite(asm_code, sizeof(char), curr, stream_out);
-    return 0;
+
+    asm_code[2] = asm_code_counter;
+    txDump(asm_code);
+    return asm_code_counter;
 }
 
 

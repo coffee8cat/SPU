@@ -23,6 +23,6 @@ int add_label(label* labels, char* label_name, int index);
 int dump_labels(label* labels);
 
 int fix_code(label* fixup, label* labels, int* asm_code);
-int assembler(char** array, int* asm_code, size_t num_of_cmds);
+size_t assembler(char** array, int* asm_code, size_t num_of_cmds);
 
 #endif
