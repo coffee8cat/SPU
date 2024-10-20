@@ -227,17 +227,35 @@ int translate_JA(int* asm_code, size_t* asm_code_counter, char** array, size_t c
     return 0;
 }
 
-int translate_CALL(int* asm_code, size_t* asm_code_counter, char** array, size_t curr_cmd)
+int translate_CALL(int* asm_code, size_t* asm_code_counter, char** array, size_t curr_cmd, label* labels, label* fixup)
 {
     assert(asm_code);
     assert(asm_code_counter);
     assert(array);
 
-    char* arg = array[curr_cmd] + strlen("CALL ");
-    asm_code[(*asm_code_counter)++] = JA | NUM_ARG_MASK;
-    asm_code[(*asm_code_counter)++] = atoi(arg);
+    asm_code[(*asm_code_counter)++] = CALL | NUM_ARG_MASK;
 
-    fprintf(stdout, "%d %d\n", JA | NUM_ARG_MASK, arg);
+    char* label_name = get_label(array, curr_cmd);
+    printf("label: %s\n", label_name);
+
+    for (size_t i = 0; i < n_labels; i++)
+    {
+        if (labels[i].name == NULL)
+        {
+            add_label(labels, label_name, -1);
+            add_label(fixup, label_name, *asm_code_counter);
+            (*asm_code_counter)++;
+            printf("fixup added: (%s)[%d]\n", label_name, *asm_code_counter - 1);
+            dump_labels(fixup);
+            break;
+        }
+        else if (strncmp(labels[i].name, label_name, strlen(label_name)) != 0)
+            continue;
+
+        asm_code[(*asm_code_counter)++] = labels[i].ip;
+        fprintf(stdout, "%d %d\n", CALL | NUM_ARG_MASK, labels[i].ip);
+        break;
+    }
     return 0;
 }
 
@@ -373,7 +391,7 @@ size_t assembler(char** array, int* asm_code, size_t num_of_cmds)
         }
         if (strncmp(array[curr_cmd], "CALL", strlen("CALL")) == 0)
         {
-            translate_CALL(asm_code, &asm_code_counter, array, curr_cmd);
+            translate_CALL(asm_code, &asm_code_counter, array, curr_cmd, labels, fixup);
             continue;
         }
         if (strchr(array[curr_cmd], ':') != NULL)

@@ -16,6 +16,7 @@
 #define MEM_ARG_MASK 0b10000000
 
 enum instructions {
+    CALL     = 0b00011010, // 26
     PUSH     = 0b00011011, //27
     POP      = 0b00011100, //28
     JMP      = 0b00011101, //29
@@ -30,7 +31,7 @@ enum instructions {
     COS      = 0b00000111, //7
     SIN      = 0b00001000, //8
     DUMP     = 0b00001001, //9
-    RTN      = 0b00001010, //10
+    RTN      = 0b00001010,  //10
     HLT      = 0b00011111  //31
 };
 

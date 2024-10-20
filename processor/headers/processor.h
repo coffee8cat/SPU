@@ -10,7 +10,8 @@ struct processor_data
     int* registers;
     size_t ip;
     size_t code_size;
-    stack_t stack;
+    stack_t data_stack;
+    stack_t call_stack;
 };
 
 int check_compatibility(FILE* stream);

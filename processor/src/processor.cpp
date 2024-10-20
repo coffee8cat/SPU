@@ -46,14 +46,18 @@ processor_data proc_ctor(size_t code_size)
     proc.registers = (int*)calloc(8, sizeof(int));
     proc.ip = 0;
     proc.code_size = code_size;
-    stack_init(&proc.stack, 8, 4);
+    stack_init(&proc.data_stack, 8, 4);
+    stack_init(&proc.call_stack, 8, 4);
     return proc;
 }
 
 int proc_dump(processor_data* proc)
 {
     printf("---PROCESSOR DUMP---\n\n");
-    STACK_DUMP(&proc -> stack, __func__);
+    printf("\n---DATA STACK---\n");
+    STACK_DUMP(&proc -> data_stack, __func__);
+    printf("\n---CALL STACK---\n");
+    STACK_DUMP(&proc -> call_stack, __func__);
     printf("ip: %d\n", proc -> ip);
     printf("CMD ARRAY:\n");
     for (size_t i = 0; i < proc->code_size; i++)
@@ -83,89 +87,87 @@ int processor(processor_data* proc)
         //printf("{cmd} = [%d]\n", cmd);
         switch (cmd)
         {
-            case PUSH: {stack_push(&proc -> stack, get_push_arg(proc));
+            case PUSH: {stack_push(&proc -> data_stack, get_push_arg(proc));
                         break;}
             case POP:  {int arg = 0;
                         int reg = proc -> cmd_array[proc -> ip + 1];
-                        stack_pop(&proc -> stack, &arg);
+                        stack_pop(&proc -> data_stack, &arg);
                         *get_pop_arg(proc) = arg;
                         break;}
             case JMP:  {proc -> ip = proc -> cmd_array[proc -> ip + 1];
                         break;}
             case JA:   {int a = 0;
                         int b = 0;
-                        stack_pop(&proc -> stack, &a);
-                        stack_pop(&proc -> stack, &b);
-                        //printf("a = %d, b = %d\n", a, b);
-
+                        stack_pop(&proc -> data_stack, &a);
+                        stack_pop(&proc -> data_stack, &b);
                         if (b > a)
                             proc -> ip = proc -> cmd_array[proc -> ip + 1];
                         else
                             proc -> ip = proc -> ip + 2;
-
-                        //stack_push(&proc -> stack, b);
-                        //stack_push(&proc -> stack, a);
+                        break;}
+            case CALL: {stack_push(&proc -> call_stack, proc -> ip + 2);
+                        proc -> ip = proc -> cmd_array[proc -> ip + 1];
+                        break;}
+            case RTN:  {stack_pop(&proc -> call_stack, &proc -> ip);
                         break;}
 
             case ELEM_IN: {int arg = 0;
                            fscanf(stdin, "%d", &arg);
-                           //stack_push(&proc -> stack, arg);
+                           stack_push(&proc -> data_stack, arg);
                            proc -> ip++;
                            break;}
             case ELEM_OUT:{int arg = 0;
-                           stack_pop(&proc -> stack, &arg);
+                           stack_pop(&proc -> data_stack, &arg);
                            printf("%d\n", arg);
                            proc -> ip++;
                            break;}
 
             case ADD: {int a = 0;
                        int b = 0;
-                       stack_pop(&proc -> stack, &a);
-                       stack_pop(&proc -> stack, &b);
-                       stack_push(&proc -> stack, b + a);
-                       //printf("ADDING\n");
-                       //STACK_DUMP(&proc->stack, __func__);
+                       stack_pop(&proc -> data_stack, &a);
+                       stack_pop(&proc -> data_stack, &b);
+                       stack_push(&proc -> data_stack, b + a);
                        proc -> ip++;
                        break;}
             case SUB: {int a = 0;
                        int b = 0;
-                       stack_pop(&proc -> stack, &a);
-                       stack_pop(&proc -> stack, &b);
-                       stack_push(&proc -> stack, b - a);
+                       stack_pop(&proc -> data_stack, &a);
+                       stack_pop(&proc -> data_stack, &b);
+                       stack_push(&proc -> data_stack, b - a);
                        proc -> ip++;
                        break;}
             case MULT:{int a = 0;
                        int b = 0;
-                       stack_pop(&proc -> stack, &a);
-                       stack_pop(&proc -> stack, &b);
-                       stack_push(&proc -> stack, b * a);
+                       stack_pop(&proc -> data_stack, &a);
+                       stack_pop(&proc -> data_stack, &b);
+                       stack_push(&proc -> data_stack, b * a);
                        proc -> ip++;
                        break;}
             case DIV: {int a = 0;
                        int b = 0;
-                       stack_pop(&proc -> stack, &a);
-                       stack_pop(&proc -> stack, &b);
-                       stack_push(&proc -> stack, b / a);
+                       stack_pop(&proc -> data_stack, &a);
+                       stack_pop(&proc -> data_stack, &b);
+                       stack_push(&proc -> data_stack, b / a);
                        proc -> ip++;
                        break;}
 
             case SQRT:{int a = 0;
-                       stack_pop(&proc -> stack, &a);
-                       stack_push(&proc -> stack, sqrt(a));
+                       stack_pop(&proc -> data_stack, &a);
+                       stack_push(&proc -> data_stack, sqrt(a));
                        proc -> ip++;
                        break;}
             case COS: {int a = 0;
-                       stack_pop (&proc -> stack, &a);
-                       stack_push(&proc -> stack, cos(a));
+                       stack_pop (&proc -> data_stack, &a);
+                       stack_push(&proc -> data_stack, cos(a));
                        proc -> ip++;
                        break;}
             case SIN: {int a = 0;
-                       stack_pop (&proc -> stack, &a);
-                       stack_push(&proc -> stack, sin(a));
+                       stack_pop (&proc -> data_stack, &a);
+                       stack_push(&proc -> data_stack, sin(a));
                        proc -> ip++;
                        break;}
 
-            case DUMP:{STACK_DUMP(&proc -> stack, __func__);
+            case DUMP:{STACK_DUMP(&proc -> data_stack, __func__);
                        proc -> ip++;
                        break;}
 
