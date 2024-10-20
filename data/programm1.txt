@@ -3,27 +3,20 @@
 push 0
 pop AX
 
-push [AX+5]
+next:
+
+push AX
 push AX
 mult
 out
 
-JMP next:
-
 push AX
 push 1
 add
+
 pop AX
-
-push AX
 push 10
+push AX
 
-next:
-JA 4
+JA next:
 hlt
-
-    call metka:
-metka:
-
-JMP next:
-

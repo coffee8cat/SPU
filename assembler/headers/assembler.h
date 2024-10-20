@@ -14,7 +14,7 @@ int translate_push (int* asm_code, size_t* asm_code_counter, char** array, size_
 int translate_in   (int* asm_code, size_t* asm_code_counter, char** array);
 int translate_pop  (int* asm_code, size_t* asm_code_counter, char** array, size_t curr_cmd);
 int translate_JMP  (int* asm_code, size_t* asm_code_counter, char** array, size_t curr_cmd, label* labels, label* fixup);
-int translate_JA   (int* asm_code, size_t* asm_code_counter, char** array, size_t curr_cmd);
+int translate_JA   (int* asm_code, size_t* asm_code_counter, char** array, size_t curr_cmd, label* labels, label* fixup);
 int translate_CALL (int* asm_code, size_t* asm_code_counter, char** array, size_t curr_cmd);
 
 int handle_labels  (int* asm_code, size_t* asm_code_counter, char** array, size_t curr_cmd, label* labels);

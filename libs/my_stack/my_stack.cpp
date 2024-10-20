@@ -319,7 +319,7 @@ stack_err stack_pop(stack_t* stack, void* temp)
         stack -> stack_hash_sum = calc_hash((char*)stack, (char*)&stack -> stack_hash_sum);
     #endif
 
-    if (stack -> size <= stack -> capacity / (realloc_coeff * realloc_coeff))
+    if (stack -> size <= stack -> capacity / (realloc_coeff * realloc_coeff) & stack -> size > 32)
         stack_realloc(stack, DECREASE);
 
     return OK;

@@ -9,13 +9,17 @@ struct processor_data
     int* RAM;
     int* registers;
     size_t ip;
+    size_t code_size;
     stack_t stack;
 };
 
 int check_compatibility(FILE* stream);
 int* make_cmd_array(processor_data* proc, FILE* stream);
+processor_data proc_ctor(size_t code_size);
+int proc_dump(processor_data* proc);
 int processor(processor_data* proc);
 
 int get_push_arg(processor_data* proc);
+int* get_pop_arg(processor_data* proc);
 
 #endif
