@@ -1,0 +1,31 @@
+2
+4341
+in
+pop BX
+push 1
+pop AX
+
+CALL fact:
+
+fact:
+push BX
+push AX
+mult
+pop AX
+
+push BX
+push 1
+sub
+pop BX
+
+push 2
+push BX
+
+JA next:
+CALL fact:
+RTN
+
+next:
+push AX
+out
+hlt
