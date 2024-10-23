@@ -4,10 +4,13 @@
 #define CURRENT_VERSION 2
 #define PROC_SIGNATURE 4341
 
+typedef int proc_data_t;
+
 #define AX 0
 #define BX 1
 #define CX 2
 #define DX 3
+#define EX 4
 
 #define CMD_MASK     0b00011111
 #define TYPE_MASK    0b11100000

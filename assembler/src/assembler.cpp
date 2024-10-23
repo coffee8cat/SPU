@@ -72,6 +72,7 @@ int translate_push(int* asm_code, size_t* asm_code_counter, char** array, size_t
             case 'B' + 'X': reg_arg_value = BX; break;
             case 'C' + 'X': reg_arg_value = CX; break;
             case 'D' + 'X': reg_arg_value = DX; break;
+            case 'E' + 'X': reg_arg_value = EX; break;
             default: fprintf(stderr, "Incorrect argument for PUSH: [%s]\n", arg_ptr);
         }
         arg_ptr = arg_ptr + 2;
@@ -121,6 +122,7 @@ int translate_pop(int* asm_code, size_t* asm_code_counter, char** array, size_t 
             case 'B' + 'X': reg_arg_value = BX; break;
             case 'C' + 'X': reg_arg_value = CX; break;
             case 'D' + 'X': reg_arg_value = DX; break;
+            case 'E' + 'X': reg_arg_value = EX; break;
             default: fprintf(stderr, "Incorrect argument for POP: [%s]\n", arg_ptr);
         }
         arg_ptr = arg_ptr + 2;

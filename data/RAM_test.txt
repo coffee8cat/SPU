@@ -1,23 +1,71 @@
 2
 4341
-push 1
-push 0
-push 1
-push 0
-push 1
-push 0
-push 1
-push 0
 
-pop [0]
-pop [1]
-pop [2]
-pop [3]
-pop [4]
-pop [5]
-pop [6]
-pop [7]
 
-draw
+push 0
+pop AX
+push 0
+push BX
+push 10
+pop CX
+push 10
+pop DX
 
+start:
+push BX
+push 1
+add
+pop BX
+
+line:
+push AX
+push 1
+add
+pop AX
+
+push AX
+push 5
+sub
+push AX
+push 5
+sub
+mult
+push BX
+push 5
+sub
+push BX
+push 5
+sub
+mult
+add
+push 5
+push 5
+mult
+sub
+
+push 0
+JA miss:
+
+push 10
+push BX
+mult
+push AX
+add
+pop EX
+push 1
+pop [EX]
+
+miss:
+push CX
+push AX
+JA line:
+
+push 0
+pop AX
+
+push DX
+push BX
+JA start:
+
+dump
 hlt

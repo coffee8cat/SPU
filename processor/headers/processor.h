@@ -2,12 +2,13 @@
 #define _PROCESSOR_H__
 
 #include "my_stack.h"
+#include "spu.h"
 
-struct processor_data
+struct processor_t
 {
-    int* cmd_array;
-    int RAM[100];
-    int registers[8];
+    proc_data_t* cmd_array;
+    proc_data_t RAM[100];
+    proc_data_t registers[8];
     size_t ip;
     size_t code_size;
     stack_t data_stack;
@@ -16,14 +17,15 @@ struct processor_data
 
 const size_t draw_n_lines     = 10;
 const size_t draw_line_length = 10;
-int check_compatibility(FILE* stream);
-int* make_cmd_array(processor_data* proc, FILE* stream);
-processor_data proc_ctor(size_t code_size);
-int proc_dump(processor_data* proc);
-int draw_RAM(processor_data* proc);
-int processor(processor_data* proc);
 
-int get_push_arg(processor_data* proc);
-int* get_pop_arg(processor_data* proc);
+int check_compatibility(FILE* stream);
+int* make_cmd_array(processor_t* proc, FILE* stream);
+processor_t proc_ctor(size_t code_size);
+int proc_dump(processor_t* proc);
+int draw_RAM(processor_t* proc);
+int processor(processor_t* proc);
+
+int get_push_arg(processor_t* proc);
+int* get_pop_arg(processor_t* proc);
 
 #endif

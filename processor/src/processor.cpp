@@ -28,7 +28,7 @@ int check_compatibility(FILE* stream)
     return 0;
 }
 
-int* make_cmd_array(processor_data* proc, FILE* stream)
+proc_data_t* make_cmd_array(processor_t* proc, FILE* stream)
 {
     assert(proc);
     assert(stream);
@@ -39,18 +39,18 @@ int* make_cmd_array(processor_data* proc, FILE* stream)
     return proc -> cmd_array;
 }
 
-processor_data proc_ctor(size_t code_size)
+processor_t proc_ctor(size_t code_size)
 {
-    processor_data proc = {};
-    proc.cmd_array = (int*)calloc(code_size, sizeof(int));
+    processor_t proc = {};
+    proc.cmd_array = (proc_data_t*)calloc(code_size, sizeof(proc_data_t));
     proc.ip = 0;
     proc.code_size = code_size;
-    stack_init(&proc.data_stack, 8, 4);
-    stack_init(&proc.call_stack, 8, 4);
+    stack_init(&proc.data_stack, 8, sizeof(proc_data_t));
+    stack_init(&proc.call_stack, 8, sizeof(proc_data_t));
     return proc;
 }
 
-int proc_dump(processor_data* proc)
+int proc_dump(processor_t* proc)
 {
     printf("---PROCESSOR DUMP---\n\n");
     printf("\n---DATA STACK---\n");
@@ -77,14 +77,14 @@ int proc_dump(processor_data* proc)
     return 0;
 }
 
-int draw_RAM(processor_data* proc)
+int draw_RAM(processor_t* proc)
 {
     assert(proc);
     for (size_t line = 0; line < draw_n_lines; line++)
     {
         for (size_t index = 0; index < draw_line_length; index++)
             {
-                if(proc -> RAM[line * draw_line_length + index] == 0)
+                if(proc -> RAM[line * draw_line_length + index] == 0) //////////double
                     printf(".");
                 else
                     printf("*");
@@ -95,7 +95,7 @@ int draw_RAM(processor_data* proc)
     return 0;
 }
 
-int processor(processor_data* proc)
+int processor(processor_t* proc)
 {
     assert(proc);
 
@@ -111,8 +111,8 @@ int processor(processor_data* proc)
                         break;}
             case JMP:  {proc -> ip = proc -> cmd_array[proc -> ip + 1];
                         break;}
-            case JA:   {int a = 0;
-                        int b = 0;
+            case JA:   {proc_data_t a = 0;
+                        proc_data_t b = 0;
                         stack_pop(&proc -> data_stack, &a);
                         stack_pop(&proc -> data_stack, &b);
                         if (b > a)
@@ -131,7 +131,7 @@ int processor(processor_data* proc)
                         break;}
 
             case ELEM_IN: {int arg = 0;
-                           fscanf(stdin, "%d", &arg);
+                           fscanf(stdin, "%llf", &arg);
                            stack_push(&proc -> data_stack, arg);
                            proc -> ip++;
                            break;}
@@ -186,7 +186,7 @@ int processor(processor_data* proc)
                        proc -> ip++;
                        break;}
 
-            case DUMP:{STACK_DUMP(&proc -> data_stack, __func__);
+            case DUMP:{proc_dump(proc);
                        proc -> ip++;
                        break;}
 
@@ -194,13 +194,13 @@ int processor(processor_data* proc)
             default:{fprintf(stderr, "ERROR: UNKNOWN COMMAND [%d]\n", cmd);
                      break;}
         }
-        proc_dump(proc);
+        /*proc_dump(proc);
         int a = 0;
-        scanf("%d", &a);
+        scanf("%d", &a);*/
     }
 }
 
-int get_push_arg(processor_data* proc)
+proc_data_t get_push_arg(processor_t* proc)
 {
     assert(proc);
 
@@ -214,7 +214,7 @@ int get_push_arg(processor_data* proc)
     return arg_value;
 }
 
-int* get_pop_arg(processor_data* proc)
+proc_data_t* get_pop_arg(processor_t* proc)
 {
     assert(proc);
 
