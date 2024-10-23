@@ -6,18 +6,21 @@
 struct processor_data
 {
     int* cmd_array;
-    int* RAM;
-    int* registers;
+    int RAM[100];
+    int registers[8];
     size_t ip;
     size_t code_size;
     stack_t data_stack;
     stack_t call_stack;
 };
 
+const size_t draw_n_lines     = 10;
+const size_t draw_line_length = 10;
 int check_compatibility(FILE* stream);
 int* make_cmd_array(processor_data* proc, FILE* stream);
 processor_data proc_ctor(size_t code_size);
 int proc_dump(processor_data* proc);
+int draw_RAM(processor_data* proc);
 int processor(processor_data* proc);
 
 int get_push_arg(processor_data* proc);

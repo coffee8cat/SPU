@@ -43,7 +43,6 @@ processor_data proc_ctor(size_t code_size)
 {
     processor_data proc = {};
     proc.cmd_array = (int*)calloc(code_size, sizeof(int));
-    proc.registers = (int*)calloc(8, sizeof(int));
     proc.ip = 0;
     proc.code_size = code_size;
     stack_init(&proc.data_stack, 8, 4);
@@ -74,6 +73,25 @@ int proc_dump(processor_data* proc)
     {
         printf("%d: %d\n", i, proc->registers[i]);
     }
+    draw_RAM(proc);
+    return 0;
+}
+
+int draw_RAM(processor_data* proc)
+{
+    assert(proc);
+    for (size_t line = 0; line < draw_n_lines; line++)
+    {
+        for (size_t index = 0; index < draw_line_length; index++)
+            {
+                if(proc -> RAM[line * draw_line_length + index] == 0)
+                    printf(".");
+                else
+                    printf("*");
+            }
+        printf("\n");
+    }
+
     return 0;
 }
 
@@ -84,15 +102,12 @@ int processor(processor_data* proc)
     while (true)
     {
         int cmd = proc -> cmd_array[proc -> ip] & CMD_MASK;
-        //printf("{cmd} = [%d]\n", cmd);
+        printf("cmd:%d\n", cmd);
         switch (cmd)
         {
             case PUSH: {stack_push(&proc -> data_stack, get_push_arg(proc));
                         break;}
-            case POP:  {int arg = 0;
-                        int reg = proc -> cmd_array[proc -> ip + 1];
-                        stack_pop(&proc -> data_stack, &arg);
-                        *get_pop_arg(proc) = arg;
+            case POP:  {stack_pop(&proc -> data_stack, get_pop_arg(proc));
                         break;}
             case JMP:  {proc -> ip = proc -> cmd_array[proc -> ip + 1];
                         break;}
@@ -109,6 +124,10 @@ int processor(processor_data* proc)
                         proc -> ip = proc -> cmd_array[proc -> ip + 1];
                         break;}
             case RTN:  {stack_pop(&proc -> call_stack, &proc -> ip);
+                        break;}
+
+            case DRAW: {draw_RAM(proc);
+                        proc ->ip++;
                         break;}
 
             case ELEM_IN: {int arg = 0;
@@ -175,9 +194,9 @@ int processor(processor_data* proc)
             default:{fprintf(stderr, "ERROR: UNKNOWN COMMAND [%d]\n", cmd);
                      break;}
         }
-        //proc_dump(proc);
+        proc_dump(proc);
         int a = 0;
-        //scanf("%d", &a);
+        scanf("%d", &a);
     }
 }
 
@@ -201,10 +220,20 @@ int* get_pop_arg(processor_data* proc)
 
     char arg_type = proc -> cmd_array[proc -> ip] & TYPE_MASK;
     proc -> ip++;
-    int* arg_value = NULL;
-    //if (arg_type & NUM_ARG_MASK) { arg_value = &proc -> cmd_array[(proc -> ip)++];}
-    if (arg_type & REG_ARG_MASK) { arg_value = &proc -> registers[proc -> cmd_array[(proc -> ip)++]];}
-    //if (arg_type & MEM_ARG_MASK) { arg_value = &proc -> RAM[*arg_value];}
-
-    return arg_value;
+    int arg_value = 0;
+    if (arg_type & MEM_ARG_MASK)
+    {
+        if (arg_type & NUM_ARG_MASK){ arg_value =  proc -> cmd_array[(proc -> ip)++];}
+        if (arg_type & REG_ARG_MASK){ arg_value += proc -> registers[proc -> cmd_array[(proc -> ip)++]];}
+        return &proc -> RAM[arg_value];
+    }
+    else
+    {
+        if (arg_type & REG_ARG_MASK) { return &proc -> registers[proc -> cmd_array[(proc -> ip)++]];}
+        else
+        {
+            fprintf(stderr, "ERROR: INVALID ARGUMENT FOR get_pop_arg: %d\n", arg_type);
+            return NULL;
+        }
+    }
 }

@@ -1,0 +1,23 @@
+2
+4341
+push 1
+push 0
+push 1
+push 0
+push 1
+push 0
+push 1
+push 0
+
+pop [0]
+pop [1]
+pop [2]
+pop [3]
+pop [4]
+pop [5]
+pop [6]
+pop [7]
+
+draw
+
+hlt

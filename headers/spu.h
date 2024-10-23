@@ -31,13 +31,9 @@ enum instructions {
     COS      = 0b00000111, //7
     SIN      = 0b00001000, //8
     DUMP     = 0b00001001, //9
-    RTN      = 0b00001010,  //10
+    RTN      = 0b00001010, //10
+    DRAW     = 0b00001011, //11
     HLT      = 0b00011111  //31
 };
-
-//int assembler(FILE* stream_in, FILE* stream_out);
-int* interpreter(FILE* stream);
-int processor(int* cmd_array);
-int run(FILE* stream);
 
 #endif

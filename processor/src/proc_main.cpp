@@ -35,6 +35,7 @@ int main(int argc, char *const argv[])
         {
             printf("%d: %d\n", i, proc.cmd_array[i]);
         }
+        printf("sadasdasdasd\n");
         processor(&proc);
     }
     // destructor

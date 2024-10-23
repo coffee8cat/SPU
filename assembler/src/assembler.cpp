@@ -14,7 +14,7 @@ const char *instructions_list[] {
     "in", "out",
     "add", "sub", "mult", "div",
     "sqrt", "cos", "sin",
-    "dump", "RTN"
+    "dump", "RTN", "draw"
     //"hlt"
 };
 
@@ -94,22 +94,7 @@ int translate_push(int* asm_code, size_t* asm_code_counter, char** array, size_t
 
     return 0;
 }
-/*
-int translate_in(int* asm_code, size_t* asm_code_counter, char** array)
-{
-    assert(asm_code);
-    assert(asm_code_counter);
-    assert(array);
 
-    int arg = 0;
-    asm_code[(*asm_code_counter)++] = ELEM_IN;
-    fprintf(stdout, "%d\n", ELEM_IN);
-    fscanf(stdin, "%d", &arg);
-    asm_code[(*asm_code_counter)++] = arg;
-
-    return 0;
-}
-*/
 int translate_pop(int* asm_code, size_t* asm_code_counter, char** array, size_t curr_cmd)
 {
     assert(asm_code);
@@ -399,7 +384,7 @@ size_t assembler(char** array, int* asm_code, size_t num_of_cmds)
             handle_labels(asm_code, &asm_code_counter, array, curr_cmd, labels);
             continue;
         }
-        for (size_t i = 0; i <= (size_t)RTN; i++)
+        for (size_t i = 0; i <= (size_t)DRAW; i++)
         {
             if (strncmp(array[curr_cmd], instructions_list[i], strlen(instructions_list[i])) == 0)
             {
