@@ -65,6 +65,9 @@ char** make_pointers_array(FILE* input_stream, size_t* num_of_cmds)
     printf("text end: %p\n", text + text_size - 1);
     for (char* curr_ptr = text; curr_ptr < text + text_size; curr_ptr++)
     {
+        if (*curr_ptr == ';')
+            *curr_ptr = '\0';
+
         if(*curr_ptr == '\n')
         {
             if (curr_len != 0)

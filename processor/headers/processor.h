@@ -7,7 +7,7 @@
 struct processor_t
 {
     proc_data_t* cmd_array;
-    proc_data_t RAM[100];
+    proc_data_t RAM[200];
     proc_data_t registers[8];
     size_t ip;
     size_t code_size;
@@ -16,11 +16,12 @@ struct processor_t
 };
 
 const size_t draw_n_lines     = 10;
-const size_t draw_line_length = 10;
+const size_t draw_line_length = 20;
 
 int check_compatibility(FILE* stream);
 int* make_cmd_array(processor_t* proc, FILE* stream);
 processor_t proc_ctor(size_t code_size);
+int proc_dtor(processor_t* proc);
 int proc_dump(processor_t* proc);
 int draw_RAM(processor_t* proc);
 int processor(processor_t* proc);

@@ -6,7 +6,7 @@ push 0
 pop AX
 push 0
 push BX
-push 10
+push 20
 pop CX
 push 10
 pop DX
@@ -19,11 +19,11 @@ pop BX
 
 line:
 push AX
-push 1
+push 2
 add
 pop AX
 
-push AX
+push AX ; start position calculation
 push 5
 sub
 push AX
@@ -38,8 +38,8 @@ push 5
 sub
 mult
 add
-push 5
-push 5
+push 4
+push 4
 mult
 sub
 
@@ -50,6 +50,12 @@ push 10
 push BX
 mult
 push AX
+add
+pop EX
+push 1
+pop [EX]
+push EX
+push 1
 add
 pop EX
 push 1

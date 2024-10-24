@@ -66,15 +66,15 @@ int translate_push(int* asm_code, size_t* asm_code_counter, char** array, size_t
     }
     if (*arg_ptr - '0' > 9 | *arg_ptr - '0' < 0)
     {
-        switch(*arg_ptr + *(arg_ptr + 1))
+        if (*arg_ptr - 'A' < 8 & *arg_ptr -'A' > 0)
         {
-            case 'A' + 'X': reg_arg_value = AX; break;
-            case 'B' + 'X': reg_arg_value = BX; break;
-            case 'C' + 'X': reg_arg_value = CX; break;
-            case 'D' + 'X': reg_arg_value = DX; break;
-            case 'E' + 'X': reg_arg_value = EX; break;
-            default: fprintf(stderr, "Incorrect argument for PUSH: [%s]\n", arg_ptr);
+            reg_arg_value = *arg_ptr - 'A';
         }
+        else
+        {
+            fprintf(stderr, "INVALID ARGUMENT FOR POP: %s\n", arg_ptr);
+        }
+
         arg_ptr = arg_ptr + 2;
         if (*arg_ptr == '+')
             arg_ptr++;
@@ -116,6 +116,15 @@ int translate_pop(int* asm_code, size_t* asm_code_counter, char** array, size_t 
     }
     if (*arg_ptr - '0' > 9 | *arg_ptr - '0' < 0)
     {
+        if (*arg_ptr - 'A' < 8 & *arg_ptr -'A' > 0)
+        {
+            reg_arg_value = *arg_ptr - 'A';
+        }
+        else
+        {
+            fprintf(stderr, "INVALID ARGUMENT FOR POP: %s\n", arg_ptr);
+        }
+        /*
         switch(*arg_ptr + *(arg_ptr + 1))
         {
             case 'A' + 'X': reg_arg_value = AX; break;
@@ -125,6 +134,7 @@ int translate_pop(int* asm_code, size_t* asm_code_counter, char** array, size_t 
             case 'E' + 'X': reg_arg_value = EX; break;
             default: fprintf(stderr, "Incorrect argument for POP: [%s]\n", arg_ptr);
         }
+        */
         arg_ptr = arg_ptr + 2;
         if (*arg_ptr == '+')
             arg_ptr++;
@@ -161,7 +171,7 @@ int translate_JMP(int* asm_code, size_t* asm_code_counter, char** array, size_t 
     char* label_name = get_label(array, curr_cmd);
     printf("label: %s\n", label_name);
 
-    for (size_t i = 0; i < n_labels; i++)
+    for (size_t i = 0; i < n_labels; i++) ///read after asm
     {
         if (labels[i].name == NULL)
         {
@@ -338,7 +348,7 @@ size_t assembler(char** array, int* asm_code, size_t num_of_cmds)
     assert(asm_code);
 
     label* labels = (label*)calloc(n_labels, sizeof(label));
-    label* fixup  = (label*)calloc(n_labels, sizeof(label)); //what about size?
+    label* fixup  = (label*)calloc(n_labels, sizeof(label)); //what about size? // chexk
 
     printf("asm_code [%p]\n"
            "array    [%p]\n", asm_code, array);

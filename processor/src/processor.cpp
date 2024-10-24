@@ -43,11 +43,24 @@ processor_t proc_ctor(size_t code_size)
 {
     processor_t proc = {};
     proc.cmd_array = (proc_data_t*)calloc(code_size, sizeof(proc_data_t));
+    if (proc.cmd_array == NULL)
+    {
+        fprintf(stderr, "CALLOC ERROR\n");
+        return proc;
+    }
     proc.ip = 0;
     proc.code_size = code_size;
     stack_init(&proc.data_stack, 8, sizeof(proc_data_t));
     stack_init(&proc.call_stack, 8, sizeof(proc_data_t));
     return proc;
+}
+
+int proc_dtor(processor_t* proc)
+{
+    assert(proc);
+    memset(proc, 0, sizeof(processor_t));
+    proc = NULL;
+    return 0;
 }
 
 int proc_dump(processor_t* proc)
@@ -84,7 +97,7 @@ int draw_RAM(processor_t* proc)
     {
         for (size_t index = 0; index < draw_line_length; index++)
             {
-                if(proc -> RAM[line * draw_line_length + index] == 0) //////////double
+                if(proc -> RAM[line * draw_line_length + index] == 0) //////////double???
                     printf(".");
                 else
                     printf("*");
@@ -131,7 +144,7 @@ int processor(processor_t* proc)
                         break;}
 
             case ELEM_IN: {int arg = 0;
-                           fscanf(stdin, "%llf", &arg);
+                           fscanf(stdin, "%d", &arg);
                            stack_push(&proc -> data_stack, arg);
                            proc -> ip++;
                            break;}

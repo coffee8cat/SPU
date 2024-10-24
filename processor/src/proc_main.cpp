@@ -9,7 +9,17 @@ int main(int argc, char *const argv[])
     FILE* stream_in  = NULL;
     FILE* stream_out = NULL;
     char* input_file  = (char*)calloc(32, sizeof(char)); // check
+    if (input_file == NULL)
+    {
+        fprintf(stderr, "ERROR: CALLOC FAILED (input_file)\n");
+        return 0;
+    }
     char* output_file = (char*)calloc(32, sizeof(char));
+    if (output_file == NULL)
+    {
+        fprintf(stderr, "ERROR: CALLOC FAILED (output_file)\n");
+        return 0;
+    }
     check_flags(input_file, output_file, argc, argv);
 
     if (strlen(input_file) == 0)
@@ -22,23 +32,23 @@ int main(int argc, char *const argv[])
     else
         stream_out = stdout;
 
-
+    if (stream_in == NULL)
+    {
+        fprintf(stderr, "ERROR: stream is not valid (stream_in)");
+    }
+    if (stream_out == NULL)
+    {
+        fprintf(stderr, "ERROR: stream is not valid (stream_out)");
+    }
     if (check_compatibility(stream_in) == 0)
     {
         size_t code_size = 0;
         fread(&code_size, 1, sizeof(int), stream_in);
-        printf("code size: %d\n", code_size);
         processor_t proc = proc_ctor(code_size); // constructor
-        printf("got here\n");
         make_cmd_array(&proc, stream_in);
-        for (size_t i = 0; i < code_size; i++)
-        {
-            printf("%d: %d\n", i, proc.cmd_array[i]);
-        }
-        printf("sadasdasdasd\n");
         processor(&proc);
+        proc_dtor(&proc);
     }
-    // destructor
 
     return 0;
 }
