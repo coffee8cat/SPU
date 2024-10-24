@@ -9,9 +9,7 @@
 #include <string.h>
 #include <assert.h>
 
-size_t count_chr(char* string, char ch);
 char* readfile(FILE* fp, size_t* text_size, char* text);
 size_t get_file_size(FILE* fp);
-char** make_pointers_array (FILE* input_stream, size_t* num_of_cmds);
 
 #endif

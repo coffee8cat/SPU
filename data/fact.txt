@@ -1,5 +1,3 @@
-2
-4341
 in
 pop BX
 push 1

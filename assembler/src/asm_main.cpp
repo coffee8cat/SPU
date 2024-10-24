@@ -40,24 +40,21 @@ int main(int argc, char *const argv[])
     }
 
 
-    size_t num_of_cmds = 0;
-    char** array = make_pointers_array(stream_in, &num_of_cmds);
-    printf("Number of cmds: [%d]\n", num_of_cmds);
+    size_t text_size = 0;
+    char* text = NULL;
+    text = readfile(stream_in, &text_size, text);
 
-    int* asm_code = (int*)calloc(num_of_cmds * 3 + 3, sizeof(int));
+    int* asm_code = (int*)calloc(text_size / 2, sizeof(int));
     if (asm_code == NULL)
     {
         fprintf(stderr, "CALLOC ERROR\n");
-        //
+        return 0;
     }
-    asm_code[2] = num_of_cmds - 2;
 
     size_t code_size = 0;
-    if (check_compatibility(stream_in, asm_code) == 0)
-    {
-        code_size = assembler(array, asm_code, num_of_cmds);
-    }
+    code_size = assembler(text, text_size, asm_code);
     fwrite(asm_code, sizeof(int), code_size, stream_out);
+
     fclose(stream_in);
     fclose(stream_out);
 

@@ -7,22 +7,18 @@ struct label{
 };
 const size_t n_labels = 16;
 
+int translate_push_pop   (char cmd, int* asm_code, size_t* asm_code_counter, char* curr);
+int translate_label_func (char cmd, int* asm_code, size_t* asm_code_counter, char* curr, label* labels, label* fixup);
 
-int check_compatibility(FILE* stream, int* asm_code);
-
-int translate_push (int* asm_code, size_t* asm_code_counter, char** array, size_t curr_cmd);
-int translate_in   (int* asm_code, size_t* asm_code_counter, char** array);
-int translate_pop  (int* asm_code, size_t* asm_code_counter, char** array, size_t curr_cmd);
-int translate_JMP  (int* asm_code, size_t* asm_code_counter, char** array, size_t curr_cmd, label* labels, label* fixup);
-int translate_JA   (int* asm_code, size_t* asm_code_counter, char** array, size_t curr_cmd, label* labels, label* fixup);
-int translate_CALL (int* asm_code, size_t* asm_code_counter, char** array, size_t curr_cmd, label* labels, label* fixup);
-
-int handle_labels  (int* asm_code, size_t* asm_code_counter, char** array, size_t curr_cmd, label* labels);
-char* get_label(char** array, size_t curr_cmd);
+int handle_labels  (int* asm_code, size_t* asm_code_counter, char* curr, label* labels);
+char* get_label(char* curr);
 int add_label(label* labels, char* label_name, int index);
 int dump_labels(label* labels);
 
 int fix_code(label* fixup, label* labels, int* asm_code);
-size_t assembler(char** array, int* asm_code, size_t num_of_cmds);
+char* skip_space  (char* curr, char* end);
+char* skip_comment(char* curr, char* end);
+
+size_t assembler(char* curr, size_t text_size, int* asm_code);
 
 #endif

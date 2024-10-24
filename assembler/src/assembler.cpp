@@ -10,50 +10,22 @@
 #include "spu.h"
 
 const char *instructions_list[] {
-    //"push"
+    "push", "pop",
+    "JMP", "JA", "CALL", "RTN",
     "in", "out",
     "add", "sub", "mult", "div",
     "sqrt", "cos", "sin",
-    "dump", "RTN", "draw"
-    //"hlt"
+    "dump", "draw",
+    "hlt"
 };
 
-int check_compatibility(FILE* stream, int* asm_code)
-{
-    int version   = 0;
-    int signature = 0;
-
-    fseek(stream, 0, SEEK_SET);
-    fscanf(stream, "%d", &version);
-    fscanf(stream, "%d", &signature);
-
-    if (version != CURRENT_VERSION)
-    {
-        fprintf(stderr, "INVALID VERSION\n");
-        return 1;
-    }
-    if (signature != PROC_SIGNATURE)
-    {
-        fprintf(stderr, "INVALID SIGNATURE\n");
-        return 2;
-    }
-
-    asm_code[0] = version;
-    asm_code[1] = signature;
-    return 0;
-}
-
-int translate_push(int* asm_code, size_t* asm_code_counter, char** array, size_t curr_cmd)
+int translate_push_pop(char cmd, int* asm_code, size_t* asm_code_counter, char* curr)
 {
     assert(asm_code);
     assert(asm_code_counter);
-    assert(array);
+    assert(curr);
 
-    char cmd = PUSH;
-    char* arg_ptr = array[curr_cmd] + strlen("push ");
-    //printf("start: [%p] [%c]\n"
-    //       "arg:   [%p] [%c]\n"
-    //       "counter[%d]\n", array[curr_cmd], *array[curr_cmd], arg, *arg, *asm_code_counter);
+    char* arg_ptr = curr + strlen(instructions_list[cmd]) + 1; // + 1 for space
 
     int reg_arg_value = -1;
     int num_arg_value = -1;
@@ -61,8 +33,6 @@ int translate_push(int* asm_code, size_t* asm_code_counter, char** array, size_t
     {
         cmd = cmd | MEM_ARG_MASK;
         arg_ptr++;
-        if (*(array[curr_cmd] + strlen(array[curr_cmd]) - 1) != ']')
-            fprintf(stderr, "Square bracket not closed in line %d: %s\n", curr_cmd, array[curr_cmd]);
     }
     if (*arg_ptr - '0' > 9 | *arg_ptr - '0' < 0)
     {
@@ -74,74 +44,13 @@ int translate_push(int* asm_code, size_t* asm_code_counter, char** array, size_t
         {
             fprintf(stderr, "INVALID ARGUMENT FOR POP: %s\n", arg_ptr);
         }
-
         arg_ptr = arg_ptr + 2;
         if (*arg_ptr == '+')
             arg_ptr++;
 
         cmd = cmd | REG_ARG_MASK;
     }
-    if (*arg_ptr - '0' <= 9 & *arg_ptr - '0' >= 0)
-    {
-        num_arg_value = atoi(arg_ptr);
-        cmd = cmd | NUM_ARG_MASK;
-    }
-
-    asm_code[(*asm_code_counter)++] = cmd;
-    printf("%d ", cmd);
-    if (cmd & REG_ARG_MASK) { asm_code[(*asm_code_counter)++] = reg_arg_value; printf("%d ", reg_arg_value);}
-    if (cmd & NUM_ARG_MASK) { asm_code[(*asm_code_counter)++] = num_arg_value; printf("%d ", num_arg_value);}
-    printf("\n");
-
-    return 0;
-}
-
-int translate_pop(int* asm_code, size_t* asm_code_counter, char** array, size_t curr_cmd)
-{
-    assert(asm_code);
-    assert(asm_code_counter);
-    assert(array);
-
-    char cmd = POP;
-    char* arg_ptr = array[curr_cmd] + strlen("pop ");
-
-    int reg_arg_value = -1;
-    int num_arg_value = -1;
-    if (*arg_ptr == '[')
-    {
-        cmd = cmd | MEM_ARG_MASK;
-        arg_ptr++;
-        if (*(array[curr_cmd] + strlen(array[curr_cmd]) - 1) != ']')
-            fprintf(stderr, "Square bracket not closed in line %d: %s\n", curr_cmd, array[curr_cmd]);
-    }
-    if (*arg_ptr - '0' > 9 | *arg_ptr - '0' < 0)
-    {
-        if (*arg_ptr - 'A' < 8 & *arg_ptr -'A' > 0)
-        {
-            reg_arg_value = *arg_ptr - 'A';
-        }
-        else
-        {
-            fprintf(stderr, "INVALID ARGUMENT FOR POP: %s\n", arg_ptr);
-        }
-        /*
-        switch(*arg_ptr + *(arg_ptr + 1))
-        {
-            case 'A' + 'X': reg_arg_value = AX; break;
-            case 'B' + 'X': reg_arg_value = BX; break;
-            case 'C' + 'X': reg_arg_value = CX; break;
-            case 'D' + 'X': reg_arg_value = DX; break;
-            case 'E' + 'X': reg_arg_value = EX; break;
-            default: fprintf(stderr, "Incorrect argument for POP: [%s]\n", arg_ptr);
-        }
-        */
-        arg_ptr = arg_ptr + 2;
-        if (*arg_ptr == '+')
-            arg_ptr++;
-
-        cmd = cmd | REG_ARG_MASK;
-    }
-    if (*arg_ptr - '0' <= 9 & *arg_ptr - '0' >= 0)
+    if ((*arg_ptr - '0' <= 9) & (*arg_ptr - '0' >= 0))
     {
         num_arg_value = atoi(arg_ptr);
         cmd = cmd | NUM_ARG_MASK;
@@ -157,116 +66,41 @@ int translate_pop(int* asm_code, size_t* asm_code_counter, char** array, size_t 
     if (cmd & NUM_ARG_MASK) { asm_code[(*asm_code_counter)++] = num_arg_value; printf("%d ", num_arg_value);}
     printf("\n");
 
-    return 0;
-}
-
-int translate_JMP(int* asm_code, size_t* asm_code_counter, char** array, size_t curr_cmd, label* labels, label* fixup)
-{
-    assert(asm_code);
-    assert(asm_code_counter);
-    assert(array);
-
-    asm_code[(*asm_code_counter)++] = JMP | NUM_ARG_MASK;
-
-    char* label_name = get_label(array, curr_cmd);
-    printf("label: %s\n", label_name);
-
-    for (size_t i = 0; i < n_labels; i++) ///read after asm
+    if (cmd == POP & (cmd & NUM_ARG_MASK) & !(cmd & REG_ARG_MASK) & !(cmd & MEM_ARG_MASK))
     {
-        if (labels[i].name == NULL)
-        {
-            add_label(labels, label_name, -1);
-            add_label(fixup, label_name, *asm_code_counter);
-            (*asm_code_counter)++;
-            printf("fixup added: (%s)[%d]\n", label_name, *asm_code_counter - 1);
-            dump_labels(fixup);
-            break;
-        }
-        else if (strncmp(labels[i].name, label_name, strlen(label_name)) != 0)
-            continue;
-
-        asm_code[(*asm_code_counter)++] = labels[i].ip;
-        fprintf(stdout, "%d %d\n", JMP | NUM_ARG_MASK, labels[i].ip);
-        break;
+        fprintf(stderr, "ARGUMENT ERROR: Pop cannot be used with only number as an argument\n");
+        //abort();
+        return -1;
     }
+
     return 0;
 }
 
-int translate_JA(int* asm_code, size_t* asm_code_counter, char** array, size_t curr_cmd, label* labels, label* fixup)
+int translate_label_func(char cmd, int* asm_code, size_t* asm_code_counter, char* curr, label* labels, label* fixup)
 {
     assert(asm_code);
     assert(asm_code_counter);
-    assert(array);
+    assert(curr);
 
-    asm_code[(*asm_code_counter)++] = JA | NUM_ARG_MASK;
+    asm_code[(*asm_code_counter)++] = cmd | NUM_ARG_MASK;
 
-    char* label_name = get_label(array, curr_cmd);
+    char* label_name = get_label(curr);
     printf("label: %s\n", label_name);
 
-    for (size_t i = 0; i < n_labels; i++)
-    {
-        if (labels[i].name == NULL)
-        {
-            add_label(labels, label_name, -1);
-            add_label(fixup, label_name, *asm_code_counter);
-            (*asm_code_counter)++;
-            printf("fixup added: (%s)[%d]\n", label_name, *asm_code_counter - 1);
-            dump_labels(fixup);
-            break;
-        }
-        else if (strncmp(labels[i].name, label_name, strlen(label_name)) != 0)
-            continue;
+    add_label(fixup, label_name, *asm_code_counter);
+    (*asm_code_counter)++;
 
-        asm_code[(*asm_code_counter)++] = labels[i].ip;
-        fprintf(stdout, "%d %d\n", JA | NUM_ARG_MASK, labels[i].ip);
-        break;
-    }
     return 0;
 }
 
-int translate_CALL(int* asm_code, size_t* asm_code_counter, char** array, size_t curr_cmd, label* labels, label* fixup)
+int handle_labels(int* asm_code, size_t* asm_code_counter, char* curr, label* labels)
 {
     assert(asm_code);
     assert(asm_code_counter);
-    assert(array);
+    assert(curr);
 
-    asm_code[(*asm_code_counter)++] = CALL | NUM_ARG_MASK;
-
-    char* label_name = get_label(array, curr_cmd);
-    printf("label: %s\n", label_name);
-
-    for (size_t i = 0; i < n_labels; i++)
-    {
-        if (labels[i].name == NULL)
-        {
-            add_label(labels, label_name, -1);
-            add_label(fixup, label_name, *asm_code_counter);
-            (*asm_code_counter)++;
-            printf("fixup added: (%s)[%d]\n", label_name, *asm_code_counter - 1);
-            dump_labels(fixup);
-            break;
-        }
-        else if (strncmp(labels[i].name, label_name, strlen(label_name)) != 0)
-            continue;
-
-        asm_code[(*asm_code_counter)++] = labels[i].ip;
-        fprintf(stdout, "%d %d\n", CALL | NUM_ARG_MASK, labels[i].ip);
-        break;
-    }
-    return 0;
-}
-
-int handle_labels(int* asm_code, size_t* asm_code_counter, char** array, size_t curr_cmd, label* labels)
-{
-    assert(asm_code);
-    assert(asm_code_counter);
-    assert(array);
-
-    char* label_name = get_label(array, curr_cmd);
-    printf("label: %s\n", label_name);
-
+    char* label_name = get_label(curr);
     add_label(labels, label_name, *asm_code_counter - 3); // first three are for tech info
-    dump_labels(labels);
 
     return 0;
 }
@@ -291,10 +125,10 @@ int add_label(label* labels, char* label_name, int index)
     return 0;
 }
 
-char* get_label(char** array, size_t curr_cmd)
+char* get_label(char* curr)
 {
-    char* start = strchr(array[curr_cmd], ':');
-    while (start > array[curr_cmd] & *(start - 1) != ' ')
+    char* start = strchr(curr, ':');
+    while (start > curr & *(start - 1) != ' ')
         start--;
 
     return start;
@@ -341,84 +175,130 @@ int fix_code(label* fixup, label* labels, int* asm_code)
     }
     return 0;
 }
-
-size_t assembler(char** array, int* asm_code, size_t num_of_cmds)
+char* skip_space(char* curr, char* end)
 {
-    assert(array);
+    assert(curr);
+    while (curr < end & (isspace(*curr)))
+        curr++;
+
+    return curr;
+}
+
+char* skip_comment(char* curr, char* end)
+{
+    assert(curr);
+    while (curr < end & *curr != '\n')
+        curr++;
+    curr++;
+    return curr;
+}
+
+size_t assembler(char* text, size_t text_size, int* asm_code)
+{
+    assert(text);
     assert(asm_code);
 
     label* labels = (label*)calloc(n_labels, sizeof(label));
-    label* fixup  = (label*)calloc(n_labels, sizeof(label)); //what about size? // chexk
-
-    printf("asm_code [%p]\n"
-           "array    [%p]\n", asm_code, array);
-
-    size_t asm_code_counter = 3;
-    for (size_t curr_cmd = 2; curr_cmd <= num_of_cmds; curr_cmd++)
+    if (labels == NULL)
     {
-        printf("current cmd: %d [%s]\n", curr_cmd, array[curr_cmd]);
-        printf("counter: %d\n", asm_code_counter);
+        fprintf(stderr, "ERROR: CALLOC FAILED\n");
+        return 0;
+    }
+    label* fixup  = (label*)calloc(n_labels, sizeof(label)); //what about size? // chexk
+    if (fixup == NULL)
+    {
+        fprintf(stderr, "ERROR: CALLOC FAILED\n");
+        return 0;
+    }
+    printf("asm_code [%p]\n"
+           "text    [%p]\n", asm_code, text);
 
-        if (strncmp(array[curr_cmd], "push", strlen("push")) == 0)
+    asm_code[0] = CURRENT_VERSION;
+    asm_code[1] = PROC_SIGNATURE;
+    size_t asm_code_counter = 3;
+
+    char* text_end = text + text_size;
+    char* curr = text;
+    //*curr = '\n';
+    bool cmd_found = false;
+
+    printf("curr [%p]\n"
+           "end  [%p]\n", curr, text_end);
+    while (curr < text_end)
+    {
+        cmd_found = false;
+        curr = strchr(curr, '\n');
+        curr = skip_space(curr, text_end);
+
+        printf("curr [%p], (%d)\n"
+            "end  [%p]\n", curr, *curr, text_end);
+        if (curr >= text_end)
+            break;
+
+        if (*curr == ';')
         {
-            translate_push(asm_code, &asm_code_counter, array, curr_cmd);
-            printf("counter after push [%d]\n", asm_code_counter);
+            curr = skip_comment(curr, text_end);
+        }
+        if (strncmp(curr, "push", strlen("push")) == 0)
+        {
+            translate_push_pop(PUSH, asm_code, &asm_code_counter, curr);
             continue;
         }
-        if (strncmp(array[curr_cmd], "pop", strlen("pop")) == 0)
+        if (strncmp(curr, "pop", strlen("pop")) == 0)
         {
-            translate_pop(asm_code, &asm_code_counter, array, curr_cmd);
+            printf("pop\n");
+            translate_push_pop(POP, asm_code, &asm_code_counter, curr);
             continue;
         }
-        if (strncmp(array[curr_cmd], "hlt", strlen("hlt")) == 0)
+        if (strncmp(curr, "JMP", strlen("JMP")) == 0)
         {
-            asm_code[asm_code_counter++] = HLT;
-            printf("%d\n", HLT);
+            translate_label_func(JMP, asm_code, &asm_code_counter, curr, labels, fixup);
             continue;
         }
-        if (strncmp(array[curr_cmd], "JMP", strlen("JMP")) == 0)
+        if (strncmp(curr, "JA", strlen("JA")) == 0)
         {
-            translate_JMP(asm_code, &asm_code_counter, array, curr_cmd, labels, fixup);
+            translate_label_func(JA, asm_code, &asm_code_counter, curr, labels, fixup);
             continue;
         }
-        if (strncmp(array[curr_cmd], "JA", strlen("JA")) == 0)
+        if (strncmp(curr, "CALL", strlen("CALL")) == 0)
         {
-            translate_JA(asm_code, &asm_code_counter, array, curr_cmd, labels, fixup);
+            translate_label_func(CALL, asm_code, &asm_code_counter, curr, labels, fixup);
             continue;
         }
-        if (strncmp(array[curr_cmd], "CALL", strlen("CALL")) == 0)
+        if (strchr(curr, ':') != NULL)
         {
-            translate_CALL(asm_code, &asm_code_counter, array, curr_cmd, labels, fixup);
+            handle_labels(asm_code, &asm_code_counter, curr, labels);
             continue;
         }
-        if (strchr(array[curr_cmd], ':') != NULL)
+        for (size_t i = 0; i <= (size_t)HLT; i++)
         {
-            handle_labels(asm_code, &asm_code_counter, array, curr_cmd, labels);
-            continue;
-        }
-        for (size_t i = 0; i <= (size_t)DRAW; i++)
-        {
-            if (strncmp(array[curr_cmd], instructions_list[i], strlen(instructions_list[i])) == 0)
+            if (strncmp(curr, instructions_list[i], strlen(instructions_list[i])) == 0)
             {
                 fprintf(stdout, "%d\n", i);
                 asm_code[asm_code_counter++] = i;
-                continue;
+                cmd_found = true;
+                break;
             }
         }
-        fprintf(stderr, "SYNTAX ERROR: UNKNOWN COMMAND: %s\n", array[curr_cmd]);
+        if (cmd_found)
+            continue;
+        else
+        {
+            fprintf(stderr, "ERROR: COMMAND CANNOT BE UNDERSTOOD\n");
+            //abort();
+        }
     }
+    printf("---LABELS---\n");
+    dump_labels(labels);
+    printf("---FIXUP---\n");
     dump_labels(fixup);
     fix_code(fixup, labels, asm_code);
 
     asm_code[2] = asm_code_counter - 3;
+
     for (size_t i = 0; i < asm_code_counter; i++)
     {
-        printf("%4d ", i);
-    }
-    printf("\n");
-    for (size_t i = 0; i < asm_code_counter; i++)
-    {
-        printf("%4d ", asm_code[i]);
+        printf("%3d: %d\n", i, asm_code[i]);
     }
 
     txDump(asm_code);
