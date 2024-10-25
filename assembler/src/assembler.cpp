@@ -34,7 +34,7 @@ int translate_push_pop(char cmd, int* asm_code, size_t* asm_code_counter, char* 
         cmd = cmd | MEM_ARG_MASK;
         arg_ptr++;
     }
-    if (*arg_ptr - '0' > 9 | *arg_ptr - '0' < 0)
+    if (*arg_ptr - '0' > 9 || *arg_ptr - '0' < 0)
     {
         if (*arg_ptr - 'A' < 8 & *arg_ptr -'A' > 0)
         {
@@ -50,7 +50,7 @@ int translate_push_pop(char cmd, int* asm_code, size_t* asm_code_counter, char* 
 
         cmd = cmd | REG_ARG_MASK;
     }
-    if ((*arg_ptr - '0' <= 9) & (*arg_ptr - '0' >= 0))
+    if ((*arg_ptr - '0' <= 9) && (*arg_ptr - '0' >= 0))
     {
         num_arg_value = atoi(arg_ptr);
         cmd = cmd | NUM_ARG_MASK;
@@ -66,7 +66,7 @@ int translate_push_pop(char cmd, int* asm_code, size_t* asm_code_counter, char* 
     if (cmd & NUM_ARG_MASK) { asm_code[(*asm_code_counter)++] = num_arg_value; printf("%d ", num_arg_value);}
     printf("\n");
 
-    if (cmd == POP & (cmd & NUM_ARG_MASK) & !(cmd & REG_ARG_MASK) & !(cmd & MEM_ARG_MASK))
+    if (cmd == POP && (cmd & NUM_ARG_MASK) && !(cmd & REG_ARG_MASK) && !(cmd & MEM_ARG_MASK))
     {
         fprintf(stderr, "ARGUMENT ERROR: Pop cannot be used with only number as an argument\n");
         //abort();
@@ -99,7 +99,9 @@ int handle_labels(int* asm_code, size_t* asm_code_counter, char* curr, label* la
     assert(asm_code_counter);
     assert(curr);
 
+    printf("curr: %p\n", curr);
     char* label_name = get_label(curr);
+
     add_label(labels, label_name, *asm_code_counter - 3); // first three are for tech info
 
     return 0;
@@ -115,22 +117,23 @@ int add_label(label* labels, char* label_name, int index)
         if (labels[i].name == NULL)
         {
             labels[i].name = label_name;        //возможно нужно вычесть 2
+            labels[i].ip = index;
+            break;
         }
-        else if (strncmp(labels[i].name, label_name, strlen(label_name)) != 0)
-            continue;
-
-        labels[i].ip = index;
-        break;
     }
+    dump_labels(labels);
     return 0;
 }
 
 char* get_label(char* curr)
 {
     char* start = strchr(curr, ':');
-    while (start > curr & *(start - 1) != ' ')
+    *start = '\0';
+    printf("start: %p", start);
+    while (start > curr && !isspace(*(start-1)))
         start--;
 
+    printf("start: %p\n", start);
     return start;
 }
 
@@ -178,7 +181,7 @@ int fix_code(label* fixup, label* labels, int* asm_code)
 char* skip_space(char* curr, char* end)
 {
     assert(curr);
-    while (curr < end & (isspace(*curr)))
+    while ((curr < end) && isspace(*curr))
         curr++;
 
     return curr;
@@ -187,7 +190,7 @@ char* skip_space(char* curr, char* end)
 char* skip_comment(char* curr, char* end)
 {
     assert(curr);
-    while (curr < end & *curr != '\n')
+    while (curr < end && *curr != '\n')
         curr++;
     curr++;
     return curr;
@@ -218,20 +221,18 @@ size_t assembler(char* text, size_t text_size, int* asm_code)
     size_t asm_code_counter = 3;
 
     char* text_end = text + text_size;
-    char* curr = text;
-    //*curr = '\n';
+    char* curr = text - 1;
+    *curr = '\n';
     bool cmd_found = false;
 
-    printf("curr [%p]\n"
-           "end  [%p]\n", curr, text_end);
     while (curr < text_end)
     {
         cmd_found = false;
         curr = strchr(curr, '\n');
         curr = skip_space(curr, text_end);
 
-        printf("curr [%p], (%d)\n"
-            "end  [%p]\n", curr, *curr, text_end);
+        //printf("curr [%p], (%d)\n"
+        //    "end  [%p]\n", curr, *curr, text_end);
         if (curr >= text_end)
             break;
 
@@ -253,21 +254,19 @@ size_t assembler(char* text, size_t text_size, int* asm_code)
         if (strncmp(curr, "JMP", strlen("JMP")) == 0)
         {
             translate_label_func(JMP, asm_code, &asm_code_counter, curr, labels, fixup);
+            curr = strchr(curr, '\0') + 1;
             continue;
         }
         if (strncmp(curr, "JA", strlen("JA")) == 0)
         {
             translate_label_func(JA, asm_code, &asm_code_counter, curr, labels, fixup);
+            curr = strchr(curr, '\0') + 1;
             continue;
         }
         if (strncmp(curr, "CALL", strlen("CALL")) == 0)
         {
             translate_label_func(CALL, asm_code, &asm_code_counter, curr, labels, fixup);
-            continue;
-        }
-        if (strchr(curr, ':') != NULL)
-        {
-            handle_labels(asm_code, &asm_code_counter, curr, labels);
+            curr = strchr(curr, '\0') + 1;
             continue;
         }
         for (size_t i = 0; i <= (size_t)HLT; i++)
@@ -284,7 +283,14 @@ size_t assembler(char* text, size_t text_size, int* asm_code)
             continue;
         else
         {
-            fprintf(stderr, "ERROR: COMMAND CANNOT BE UNDERSTOOD\n");
+            if (strchr(curr, ':') != NULL)
+            {
+                printf("LABEL FOUND\n");
+                handle_labels(asm_code, &asm_code_counter, curr, labels);
+                curr = strchr(curr, '\0') + 1;
+                continue;
+            }
+            //fprintf(stderr, "ERROR: COMMAND CANNOT BE UNDERSTOOD\n");
             //abort();
         }
     }

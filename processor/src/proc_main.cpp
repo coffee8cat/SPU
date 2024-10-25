@@ -25,12 +25,13 @@ int main(int argc, char *const argv[])
     if (strlen(input_file) == 0)
         stream_in = stdin;
     else
-        stream_in  = fopen(input_file, "r");
+        stream_in  = fopen(input_file, "rb");
 
     if (strlen(output_file) == 0)
-        stream_out = fopen(output_file, "w");
-    else
         stream_out = stdout;
+    else
+        stream_out = fopen(output_file, "wb");
+
 
     if (stream_in == NULL)
     {

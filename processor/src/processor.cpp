@@ -14,7 +14,6 @@ int check_compatibility(FILE* stream)
     int signature = 0;
     fread(&version, 1, sizeof(int), stream);
     fread(&signature, 1, sizeof(int), stream);
-    printf("v: %d; sgn: %d\n", version, signature);
     if (version != CURRENT_VERSION)
     {
         fprintf(stderr, "INVALID VERSION\n");
@@ -33,7 +32,7 @@ proc_data_t* make_cmd_array(processor_t* proc, FILE* stream)
     assert(proc);
     assert(stream);
 
-    printf("%d\n", proc -> code_size);
+    //printf("%d\n", proc -> code_size);
     fread(proc -> cmd_array, proc -> code_size, sizeof(int), stream);
 
     return proc -> cmd_array;
@@ -115,7 +114,7 @@ int processor(processor_t* proc)
     while (true)
     {
         int cmd = proc -> cmd_array[proc -> ip] & CMD_MASK;
-        printf("cmd:%d\n", cmd);
+        //printf("cmd:%d\n", cmd);
         switch (cmd)
         {
             case PUSH: {stack_push(&proc -> data_stack, get_push_arg(proc));
