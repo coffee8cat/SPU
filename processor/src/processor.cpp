@@ -111,13 +111,17 @@ int processor(processor_t* proc)
 {
     assert(proc);
 
+    #define DEF_CMD(cmd, num, arg, ...) \
+    case CMD_ ##cmd:{ __VA_ARGS__ break;} \
+
     while (true)
     {
         int cmd = proc -> cmd_array[proc -> ip] & CMD_MASK;
         //printf("cmd:%d\n", cmd);
         switch (cmd)
         {
-            case PUSH: {stack_push(&proc -> data_stack, get_push_arg(proc));
+            #include "commands.h"
+            /*case PUSH: {stack_push(&proc -> data_stack, get_push_arg(proc));
                         break;}
             case POP:  {stack_pop(&proc -> data_stack, get_pop_arg(proc));
                         break;}
@@ -203,9 +207,12 @@ int processor(processor_t* proc)
                        break;}
 
             case HLT:{return 0;}
+            */
             default:{fprintf(stderr, "ERROR: UNKNOWN COMMAND [%d]\n", cmd);
                      break;}
         }
+
+        #undef DEF_CMD
         /*proc_dump(proc);
         int a = 0;
         scanf("%d", &a);*/
