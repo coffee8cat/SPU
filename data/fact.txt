@@ -1,7 +1,9 @@
 in
 pop BX
 push 1
-
+; Main info
+; BX - arg to calc factorial
+; Destroys BX
 CALL fact:
 
 out
