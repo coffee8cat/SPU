@@ -1,3 +1,4 @@
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -9,15 +10,14 @@
 #include "assembler.h"
 #include "spu.h"
 
+#define DEF_CMD(cmd, ...) #cmd,
+
 const char *instructions_list[] {
-    "push", "pop",
-    "JMP", "JA", "CALL", "RTN",
-    "in", "out",
-    "add", "sub", "mult", "div",
-    "sqrt", "cos", "sin",
-    "dump", "draw",
-    "hlt"
+    #include "commands.h"
+    "end"
 };
+
+#undef DEF_CMD
 
 char* translate_push_pop(char cmd, int* asm_code, size_t* asm_code_counter, char* curr)
 {
@@ -62,7 +62,7 @@ char* translate_push_pop(char cmd, int* asm_code, size_t* asm_code_counter, char
     if (cmd & REG_ARG_MASK) { asm_code[(*asm_code_counter)++] = reg_arg_value; printf("%d ", reg_arg_value);}
     if (cmd & NUM_ARG_MASK) { asm_code[(*asm_code_counter)++] = num_arg_value; printf("%d ", num_arg_value);}
 
-    if (cmd == POP && (cmd & NUM_ARG_MASK) && !(cmd & REG_ARG_MASK) && !(cmd & MEM_ARG_MASK))
+    if (cmd == CMD_POP && (cmd & NUM_ARG_MASK) && !(cmd & REG_ARG_MASK) && !(cmd & MEM_ARG_MASK))
     {
         fprintf(stderr, "ARGUMENT ERROR: Pop cannot be used with only number as an argument\n");
         //abort();
@@ -90,9 +90,6 @@ char* translate_label_func(char cmd, int* asm_code, size_t* asm_code_counter, ch
     return curr;
 }
 
-//char* translate_basic_func()
-
-
 char* handle_labels(int* asm_code, size_t* asm_code_counter, char* curr, label* labels)
 {
     assert(asm_code);
@@ -117,7 +114,7 @@ int add_label(label* labels, char* label_name, int index)
     {
         if (labels[i].name == NULL)
         {
-            labels[i].name = label_name;        //возможно нужно вычесть 2
+            labels[i].name = label_name;
             labels[i].ip = index;
             break;
         }
@@ -206,37 +203,70 @@ char* skip_comment(char* curr, char* end)
     return curr;
 }
 
-size_t assembler(char* text, size_t text_size, int* asm_code)
+int prepare_to_assemble(label** labels, label** fixup, int* asm_code, size_t* asm_code_counter)
 {
-    assert(text);
-    assert(asm_code);
-
-    label* labels = (label*)calloc(n_labels, sizeof(label));
+    *labels = (label*)calloc(n_labels, sizeof(label));
     if (labels == NULL)
     {
         fprintf(stderr, "ERROR: CALLOC FAILED\n");
         return 0;
     }
-    label* fixup  = (label*)calloc(n_labels, sizeof(label)); //what about size? // chexk
+    *fixup  = (label*)calloc(n_labels, sizeof(label)); //what about size? // chexk
     if (fixup == NULL)
     {
         fprintf(stderr, "ERROR: CALLOC FAILED\n");
         return 0;
     }
-    printf("asm_code [%p]\n"
-           "text    [%p]\n", asm_code, text);
 
     asm_code[0] = CURRENT_VERSION;
     asm_code[1] = PROC_SIGNATURE;
-    size_t asm_code_counter = 3;
+    *asm_code_counter = 3;
+
+    return 0;
+}
+
+char* Compile_with_arg(char cmd, int* asm_code, size_t* asm_code_counter, char* curr, label* labels, label* fixup)
+{
+    if (cmd == CMD_PUSH || cmd == CMD_POP)
+        curr = translate_push_pop(cmd, asm_code, asm_code_counter, curr);
+    else
+        curr = translate_label_func(cmd, asm_code, asm_code_counter, curr, labels, fixup);
+
+    return curr;
+}
+
+size_t assembler(char* text, size_t text_size, int* asm_code)
+{
+    assert(text);
+    assert(asm_code);
+
+    label* labels = NULL;
+    label* fixup  = NULL;
+    size_t asm_code_counter = 0;
+
+    prepare_to_assemble(&labels, &fixup, asm_code, &asm_code_counter);
+
+    #define DEF_CMD(cmd, num, arg, ...) \
+    if (strncmp(curr, #cmd, strlen(#cmd)) == 0) \
+    { \
+        printf("command found\n"); \
+        if (arg) {curr = Compile_with_arg(num, asm_code, &asm_code_counter, curr, labels, fixup);} \
+        else \
+        { \
+            asm_code[asm_code_counter++] = num; \
+            curr = skip_until_space(curr); \
+        } \
+        continue; \
+    } \
 
     char* text_end = text + text_size;
     char* curr = text;
-    bool cmd_found = false;
+
+    printf( "asm_code [%p]\n"
+            "text    [%p]\n", asm_code, text);
 
     while (curr < text_end)
     {
-        cmd_found = false;
         curr = skip_space(curr, text_end);
 
         printf("curr [%p], (%d)\n"
@@ -249,64 +279,27 @@ size_t assembler(char* text, size_t text_size, int* asm_code)
             curr = skip_comment(curr, text_end);
             continue;
         }
-        if (strncmp(curr, "push", strlen("push")) == 0)
+
+        #include "commands.h"
+
+        if (strchr(curr, ':') != NULL && (strchr(curr, ':') < strchr(curr, '\n')))
         {
-            curr = translate_push_pop(PUSH, asm_code, &asm_code_counter, curr);
+            curr = handle_labels(asm_code, &asm_code_counter, curr, labels);
             continue;
         }
-        if (strncmp(curr, "pop", strlen("pop")) == 0)
-        {
-            curr = translate_push_pop(POP, asm_code, &asm_code_counter, curr);
-            continue;
-        }
-        if (strncmp(curr, "JMP", strlen("JMP")) == 0)
-        {
-            curr = translate_label_func(JMP, asm_code, &asm_code_counter, curr, labels, fixup);
-            continue;
-        }
-        if (strncmp(curr, "JA", strlen("JA")) == 0)
-        {
-            curr = translate_label_func(JA, asm_code, &asm_code_counter, curr, labels, fixup);
-            continue;
-        }
-        if (strncmp(curr, "CALL", strlen("CALL")) == 0)
-        {
-            curr = translate_label_func(CALL, asm_code, &asm_code_counter, curr, labels, fixup);
-            continue;
-        }
-        for (size_t i = 0; i <= (size_t)HLT; i++)
-        {
-            if (strncmp(curr, instructions_list[i], strlen(instructions_list[i])) == 0)
-            {
-                asm_code[asm_code_counter++] = i;
-                cmd_found = true;
-                curr = skip_until_space(curr);
-                break;
-            }
-        }
-        if (cmd_found)
-            continue;
-        else
-        {
-            if (strchr(curr, ':') != NULL && (strchr(curr, ':') < strchr(curr, '\n')))
-            {
-                curr = handle_labels(asm_code, &asm_code_counter, curr, labels);
-                continue;
-            }
-            else
-            {
-                fprintf(stderr, "ERROR: COMMAND CANNOT BE UNDERSTOOD\n");
-                return 0;
-                //abort();
-            }
-        }
+        fprintf(stderr, "ERROR: COMMAND CANNOT BE UNDERSTOOD\n");
+        printf("%s\n", curr);
+        return 0;
     }
-    printf("---LABELS---\n");
+
+    #undef DEF_CMD
+
+    /*printf("---LABELS---\n");
     dump_labels(labels);
     printf("---FIXUP---\n");
-    dump_labels(fixup);
-    fix_code(fixup, labels, asm_code);
+    dump_labels(fixup);*/
 
+    fix_code(fixup, labels, asm_code);
     asm_code[2] = asm_code_counter - 3;
 
     for (size_t i = 0; i < asm_code_counter; i++)
@@ -317,5 +310,3 @@ size_t assembler(char* text, size_t text_size, int* asm_code)
     txDump(asm_code);
     return asm_code_counter;
 }
-
-

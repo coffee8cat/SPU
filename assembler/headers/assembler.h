@@ -5,8 +5,10 @@ struct label{
     int ip;
     char* name;
 };
+
 const size_t n_labels = 16;
 
+char* Compile_with_arg     (char cmd, int* asm_code, size_t* asm_code_counter, char* curr, label* labels, label* fixup);
 char* translate_push_pop   (char cmd, int* asm_code, size_t* asm_code_counter, char* curr);
 char* translate_label_func (char cmd, int* asm_code, size_t* asm_code_counter, char* curr, label* labels, label* fixup);
 
@@ -20,6 +22,7 @@ char* skip_until_space(char* curr);
 char* skip_space  (char* curr, char* end);
 char* skip_comment(char* curr, char* end);
 
+int prepare_to_assemble(label** labels, label** fixup, int* asm_code, size_t* asm_code_counter);
 size_t assembler(char* curr, size_t text_size, int* asm_code);
 
 #endif

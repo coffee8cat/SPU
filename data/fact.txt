@@ -1,25 +1,25 @@
-in
-pop BX
-push 1
+ELEM_IN
+POP BX
+PUSH 1
 ; Main info
 ; BX - arg to calc factorial
 ; Destroys BX
 CALL fact:
 
-out
-hlt
+ELEM_OUT
+HLT
 
 fact:
-push 2
-push BX
+PUSH 2
+PUSH BX
 JA next:
 
-push BX
-mult
-push BX
-push 1
-sub
-pop BX
+PUSH BX
+MULT
+PUSH BX
+PUSH 1
+SUB
+POP BX
 CALL fact:
 
 next:

@@ -12,7 +12,10 @@ typedef int proc_data_t;
 #define REG_ARG_MASK 0b01000000
 #define MEM_ARG_MASK 0b10000000
 
+#define DEF_CMD(cmd, num, ...) CMD_ ##cmd = num,
 enum instructions {
+    #include "commands.h"
+    /*
     PUSH     = 0b00000, //0
     POP      = 0b00001, //1
     JMP      = 0b00010, //2
@@ -31,6 +34,9 @@ enum instructions {
     DUMP     = 0b01111, //15
     DRAW     = 0b10000, //16
     HLT      = 0b10001  //17
+    */
 };
+
+#undef DEF_CMD
 
 #endif
