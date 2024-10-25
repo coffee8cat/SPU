@@ -117,7 +117,7 @@ int processor(processor_t* proc)
     while (true)
     {
         int cmd = proc -> cmd_array[proc -> ip] & CMD_MASK;
-        //printf("cmd:%d\n", cmd);
+        printf("cmd:%d\n", cmd);
         switch (cmd)
         {
             #include "commands.h"
@@ -213,7 +213,9 @@ int processor(processor_t* proc)
         }
 
         #undef DEF_CMD
-        /*proc_dump(proc);
+
+        /*(proc -> ip)++;
+        proc_dump(proc);
         int a = 0;
         scanf("%d", &a);*/
     }
@@ -224,12 +226,13 @@ proc_data_t get_push_arg(processor_t* proc)
     assert(proc);
 
     char arg_type = proc -> cmd_array[proc -> ip] & TYPE_MASK;
-    proc -> ip++;
+    (proc -> ip)++;
     int arg_value = 0;
     if (arg_type & NUM_ARG_MASK) { arg_value =  proc -> cmd_array[(proc -> ip)++];}
     if (arg_type & REG_ARG_MASK) { arg_value += proc -> registers[proc -> cmd_array[(proc -> ip)++]];}
     if (arg_type & MEM_ARG_MASK) { arg_value =  proc -> RAM[arg_value];}
 
+    //(proc -> ip)--;
     return arg_value;
 }
 
@@ -244,6 +247,7 @@ proc_data_t* get_pop_arg(processor_t* proc)
     {
         if (arg_type & NUM_ARG_MASK){ arg_value =  proc -> cmd_array[(proc -> ip)++];}
         if (arg_type & REG_ARG_MASK){ arg_value += proc -> registers[proc -> cmd_array[(proc -> ip)++]];}
+        //(proc -> ip)--;
         return &proc -> RAM[arg_value];
     }
     else

@@ -12,8 +12,8 @@ IP = CMD_ARRAY[IP + 1];)
 DEF_CMD(JA,   3, true,
 proc_data_t a = 0;
 proc_data_t b = 0;
-DO_POP(a);
-DO_POP(b);
+DO_POP(&a);
+DO_POP(&b);
 if (b > a)
     IP = CMD_ARRAY[IP + 1];
 else
@@ -21,11 +21,10 @@ else
 
 DEF_CMD(CALL, 4, true,
 DO_CALL_PUSH(IP + 2)
-stack_push(&proc -> call_stack, IP + 2);
 IP = CMD_ARRAY[IP + 1];)
 
 DEF_CMD(RTN,  5, false,
-DO_CALL_POP(IP))                 ///////
+DO_CALL_POP(&IP))                 ///////
 
 DEF_CMD(ELEM_IN,   6, false,
 int arg = 0;
@@ -35,7 +34,7 @@ proc -> ip++;)
 
 DEF_CMD(ELEM_OUT,  7, false,
 int arg = 0;
-DO_POP(arg)
+DO_POP(&arg)
 printf("%d\n", arg);
 proc -> ip++;)
 
@@ -68,7 +67,7 @@ MATH(sin)
 proc -> ip++;)
 
 DEF_CMD(DUMP, 15, false,
-DUMP
+DO_DUMP
 proc -> ip++;)
 
 DEF_CMD(DRAW, 16, false,
@@ -83,6 +82,6 @@ return 0;)
 #undef MATH
 #undef ARIFM
 #undef DRAW_RAM
-#undef DUMP
+#undef DO_DUMP
 #undef CMD_ARRAY
 #undef IP
