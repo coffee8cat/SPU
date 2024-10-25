@@ -1,98 +1,88 @@
+#include "DSL_description.h"
+
 DEF_CMD(PUSH, 0, true,
-stack_push(&proc -> data_stack, get_push_arg(proc));)
+DO_PUSH(get_push_arg(proc)))
 
 DEF_CMD(POP,  1, true,
-stack_pop(&proc -> data_stack, get_pop_arg(proc));)
+DO_POP(get_pop_arg(proc)))
 
 DEF_CMD(JMP,  2, true,
-proc -> ip = proc -> cmd_array[proc -> ip + 1];)
+IP = CMD_ARRAY[IP + 1];)
 
 DEF_CMD(JA,   3, true,
 proc_data_t a = 0;
 proc_data_t b = 0;
-stack_pop(&proc -> data_stack, &a);
-stack_pop(&proc -> data_stack, &b);
+DO_POP(a);
+DO_POP(b);
 if (b > a)
-    proc -> ip = proc -> cmd_array[proc -> ip + 1];
+    IP = CMD_ARRAY[IP + 1];
 else
-    proc -> ip = proc -> ip + 2;)
+    IP = IP + 2;)
 
 DEF_CMD(CALL, 4, true,
-stack_push(&proc -> call_stack, proc -> ip + 2);
-proc -> ip = proc -> cmd_array[proc -> ip + 1];)
+DO_CALL_PUSH(IP + 2)
+stack_push(&proc -> call_stack, IP + 2);
+IP = CMD_ARRAY[IP + 1];)
 
 DEF_CMD(RTN,  5, false,
-stack_pop(&proc -> call_stack, &proc -> ip);)
+DO_CALL_POP(IP))                 ///////
 
 DEF_CMD(ELEM_IN,   6, false,
 int arg = 0;
 fscanf(stdin, "%d", &arg);
-stack_push(&proc -> data_stack, arg);
+DO_PUSH(arg)
 proc -> ip++;)
 
 DEF_CMD(ELEM_OUT,  7, false,
 int arg = 0;
-stack_pop(&proc -> data_stack, &arg);
+DO_POP(arg)
 printf("%d\n", arg);
 proc -> ip++;)
 
 DEF_CMD(ADD,  8, false,
-int a = 0;
-int b = 0;
-stack_pop(&proc -> data_stack, &a);
-stack_pop(&proc -> data_stack, &b);
-stack_push(&proc -> data_stack, b + a);
+ARIFM(+)
 proc -> ip++;)
 
 DEF_CMD(SUB,  9, false,
-int a = 0;
-int b = 0;
-stack_pop(&proc -> data_stack, &a);
-stack_pop(&proc -> data_stack, &b);
-stack_push(&proc -> data_stack, b - a);
+ARIFM(-)
 proc -> ip++;)
 
 DEF_CMD(MULT, 10, false,
-int a = 0;
-int b = 0;
-stack_pop(&proc -> data_stack, &a);
-stack_pop(&proc -> data_stack, &b);
-stack_push(&proc -> data_stack, b * a);
+ARIFM(*)
 proc -> ip++;)
 
 DEF_CMD(DIV,  11, false,
-int a = 0;
-int b = 0;
-stack_pop(&proc -> data_stack, &a);
-stack_pop(&proc -> data_stack, &b);
-stack_push(&proc -> data_stack, b / a);
+ARIFM(/)
 proc -> ip++;)
 
 DEF_CMD(SQRT, 12, false,
-int a = 0;
-stack_pop(&proc -> data_stack, &a);
-stack_push(&proc -> data_stack, sqrt(a));
+MATH(sqrt)
 proc -> ip++;)
 
 DEF_CMD(COS,  13, false,
-int a = 0;
-stack_pop (&proc -> data_stack, &a);
-stack_push(&proc -> data_stack, cos(a));
+MATH(cos)
 proc -> ip++;)
 
 DEF_CMD(SIN,  14, false,
-int a = 0;
-stack_pop (&proc -> data_stack, &a);
-stack_push(&proc -> data_stack, sin(a));
+MATH(sin)
 proc -> ip++;)
 
 DEF_CMD(DUMP, 15, false,
-proc_dump(proc);
+DUMP
 proc -> ip++;)
 
 DEF_CMD(DRAW, 16, false,
-draw_RAM(proc);
+DRAW_RAM
 proc ->ip++;)
 
 DEF_CMD(HLT,  17, false,
 return 0;)
+
+#undef DO_PUSH
+#undef DO_POP
+#undef MATH
+#undef ARIFM
+#undef DRAW_RAM
+#undef DUMP
+#undef CMD_ARRAY
+#undef IP
