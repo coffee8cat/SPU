@@ -104,7 +104,7 @@ struct stack_t {
 
 #define UP_TO_EIGHT(x) (x) + (8 - (x) % 8) % 8
 
-#define STACK_DUMP(stack, func) stack_dump(stack, __FILE__, __LINE__, func, &dump_int)
+#define STACK_DUMP(stack, func) stack_dump(stack, __FILE__, __LINE__, func, &dump_double)
 
 stack_err stack_init   (stack_t* stack, size_t init_size, size_t elem_size);
 stack_err stack_delete (stack_t* stack);

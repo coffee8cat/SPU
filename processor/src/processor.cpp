@@ -10,10 +10,10 @@
 
 int check_compatibility(FILE* stream)
 {
-    int version = 0;
-    int signature = 0;
-    fread(&version, 1, sizeof(int), stream);
-    fread(&signature, 1, sizeof(int), stream);
+    asm_data_t version = 0;
+    asm_data_t signature = 0;
+    fread(&version,   1, sizeof(asm_data_t), stream);
+    fread(&signature, 1, sizeof(asm_data_t), stream);
     if (version != CURRENT_VERSION)
     {
         fprintf(stderr, "INVALID VERSION\n");
@@ -27,19 +27,21 @@ int check_compatibility(FILE* stream)
     return 0;
 }
 
-proc_data_t* make_cmd_array(processor_t* proc, FILE* stream)
+asm_data_t* make_cmd_array(processor_t* proc, FILE* stream)
 {
     assert(proc);
     assert(stream);
 
-    fread(proc -> cmd_array, proc -> code_size, sizeof(int), stream);
+    fread(proc -> cmd_array, proc -> code_size, sizeof(asm_data_t), stream);
+    for (size_t i = 0; i < proc -> code_size; i++)
+        printf("%d\n", proc -> cmd_array[i]);
     return proc -> cmd_array;
 }
 
 processor_t proc_ctor(size_t code_size)
 {
     processor_t proc = {};
-    proc.cmd_array = (proc_data_t*)calloc(code_size, sizeof(proc_data_t));
+    proc.cmd_array = (asm_data_t*)calloc(code_size, sizeof(asm_data_t));
     if (proc.cmd_array == NULL)
     {
         fprintf(stderr, "CALLOC ERROR\n");
@@ -48,7 +50,7 @@ processor_t proc_ctor(size_t code_size)
     proc.ip = 0;
     proc.code_size = code_size;
     stack_init(&proc.data_stack, 8, sizeof(proc_data_t));
-    stack_init(&proc.call_stack, 8, sizeof(proc_data_t));
+    stack_init(&proc.call_stack, 8, sizeof(asm_data_t));
     return proc;
 }
 
@@ -71,17 +73,12 @@ int proc_dump(processor_t* proc)
     printf("CMD ARRAY:\n");
     for (size_t i = 0; i < proc->code_size; i++)
     {
-        printf("%4d ", i);
-    }
-    printf("\n");
-    for (size_t i = 0; i < proc->code_size; i++)
-    {
-        printf("%4d ", proc->cmd_array[i]);
+        printf("%3d: %d\n", i, proc -> cmd_array[i]);
     }
     printf("\nREGISTERS\n");
     for (size_t i = 0; i < 4; i++)
     {
-        printf("%d: %d\n", i, proc->registers[i]);
+        printf("%d: %lf\n", i, proc->registers[i]);
     }
     draw_RAM(proc);
     return 0;
@@ -123,9 +120,9 @@ int execute_cmds(processor_t* proc)
                      break;}
         }
         (proc -> ip)++;
-        /*proc_dump(proc);
+        proc_dump(proc);
         int a = 0;
-        scanf("%d", &a);*/
+        scanf("%d", &a);
     }
 
     #undef DEF_CMD
@@ -138,10 +135,10 @@ proc_data_t get_push_arg(processor_t* proc)
 
     char arg_type = proc -> cmd_array[proc -> ip] & TYPE_MASK;
     (proc -> ip)++;
-    int arg_value = 0;
-    if (arg_type & NUM_ARG_MASK) { arg_value =  proc -> cmd_array[(proc -> ip)++];}
+    double arg_value = 0;
+    if (arg_type & NUM_ARG_MASK) { arg_value =  proc -> cmd_array[(proc -> ip)++] / ACCURACY;}
     if (arg_type & REG_ARG_MASK) { arg_value += proc -> registers[proc -> cmd_array[(proc -> ip)++]];}
-    if (arg_type & MEM_ARG_MASK) { arg_value =  proc -> RAM[arg_value];}
+    if (arg_type & MEM_ARG_MASK) { arg_value =  proc -> RAM[(size_t)arg_value];}
 
     return arg_value;
 }
@@ -152,12 +149,12 @@ proc_data_t* get_pop_arg(processor_t* proc)
 
     char arg_type = proc -> cmd_array[proc -> ip] & TYPE_MASK;
     proc -> ip++;
-    int arg_value = 0;
+    double arg_value = 0;
     if (arg_type & MEM_ARG_MASK)
     {
-        if (arg_type & NUM_ARG_MASK){ arg_value =  proc -> cmd_array[(proc -> ip)++];}
+        if (arg_type & NUM_ARG_MASK){ arg_value =  proc -> cmd_array[(proc -> ip)++] / ACCURACY;}
         if (arg_type & REG_ARG_MASK){ arg_value += proc -> registers[proc -> cmd_array[(proc -> ip)++]];}
-        return &proc -> RAM[arg_value];
+        return &proc -> RAM[(size_t)arg_value];
     }
     else
     {

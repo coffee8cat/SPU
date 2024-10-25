@@ -25,14 +25,14 @@ IP--;)
 DEF_CMD(RTN,  5, false, DO_CALL_POP(&IP) IP--;)
 /////////////////////////////////////////////////////////
 DEF_CMD(ELEM_IN,   6, false,
-int arg = 0;
-fscanf(stdin, "%d", &arg);
+proc_data_t arg = 0;
+fscanf(stdin, "%lf", &arg);
 DO_PUSH(arg))
 /////////////////////////////////////////////////////////
 DEF_CMD(ELEM_OUT,  7, false,
-int arg = 0;
+proc_data_t arg = 0;
 DO_POP(&arg)
-printf("%d\n", arg);)
+printf("%lf\n", arg);)
 /////////////////////////////////////////////////////////
 DEF_CMD(ADD,  8,  false, ARIFM(+))
 DEF_CMD(SUB,  9,  false, ARIFM(-))

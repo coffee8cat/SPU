@@ -4,7 +4,9 @@
 #define CURRENT_VERSION 3
 #define PROC_SIGNATURE 4341
 
-typedef int proc_data_t;
+typedef int asm_data_t;
+typedef double proc_data_t;
+const double ACCURACY = 10000;
 
 #define CMD_MASK     0b00011111
 #define TYPE_MASK    0b11100000

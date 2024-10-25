@@ -30,7 +30,7 @@ int prepare_to_translate(asm_data* data, streams_data* streams_info)
     if (data -> text == NULL)
         return -1;
 
-    data -> asm_code = (int*)calloc(data -> text_size / 2, sizeof(int));
+    data -> asm_code = (asm_data_t*)calloc(data -> text_size / 2, sizeof(int));
     if (data -> asm_code == NULL)
     {
         fclose(streams_info -> stream_out);
@@ -40,7 +40,7 @@ int prepare_to_translate(asm_data* data, streams_data* streams_info)
     return 0;
 }
 
-char* translate_push_pop(char cmd, int* asm_code, size_t* asm_code_counter, char* curr)
+char* translate_push_pop(int cmd, asm_data_t* asm_code, size_t* asm_code_counter, char* curr)
 {
     assert(asm_code);
     assert(asm_code_counter);
@@ -55,9 +55,9 @@ char* translate_push_pop(char cmd, int* asm_code, size_t* asm_code_counter, char
         cmd = cmd | MEM_ARG_MASK;
         arg_ptr++;
     }
-    if (*arg_ptr - '0' > 9 || *arg_ptr - '0' < 0)
+    if ((*arg_ptr - '0' > 9) || (*arg_ptr - '0' < 0))
     {
-        if (*arg_ptr - 'A' < 8 & *arg_ptr -'A' > 0)
+        if ((*arg_ptr - 'A' < 8) & (*arg_ptr -'A' > 0))
         {
             reg_arg_value = *arg_ptr - 'A';
         }
@@ -74,14 +74,14 @@ char* translate_push_pop(char cmd, int* asm_code, size_t* asm_code_counter, char
     }
     if ((*arg_ptr - '0' <= 9) && (*arg_ptr - '0' >= 0))
     {
-        num_arg_value = atoi(arg_ptr);
+        num_arg_value = round(ACCURACY * atof(arg_ptr));
         cmd = cmd | NUM_ARG_MASK;
     }
 
     asm_code[(*asm_code_counter)++] = cmd;
 
-    if (cmd & REG_ARG_MASK) { asm_code[(*asm_code_counter)++] = reg_arg_value; printf("%d ", reg_arg_value);}
-    if (cmd & NUM_ARG_MASK) { asm_code[(*asm_code_counter)++] = num_arg_value; printf("%d ", num_arg_value);}
+    if (cmd & REG_ARG_MASK) { asm_code[(*asm_code_counter)++] = reg_arg_value;}
+    if (cmd & NUM_ARG_MASK) { asm_code[(*asm_code_counter)++] = num_arg_value;}
 
     if (cmd == CMD_POP && (cmd & NUM_ARG_MASK) && !(cmd & REG_ARG_MASK) && !(cmd & MEM_ARG_MASK))
     {
@@ -94,7 +94,7 @@ char* translate_push_pop(char cmd, int* asm_code, size_t* asm_code_counter, char
     return curr;
 }
 
-char* translate_label_func(char cmd, int* asm_code, size_t* asm_code_counter, char* curr, label* labels, label* fixup)
+char* translate_label_func(int cmd, asm_data_t* asm_code, size_t* asm_code_counter, char* curr, label* labels, label* fixup)
 {
     assert(asm_code);
     assert(asm_code_counter);
@@ -111,7 +111,7 @@ char* translate_label_func(char cmd, int* asm_code, size_t* asm_code_counter, ch
     return curr;
 }
 
-char* handle_labels(int* asm_code, size_t* asm_code_counter, char* curr, label* labels)
+char* handle_labels(asm_data_t* asm_code, size_t* asm_code_counter, char* curr, label* labels)
 {
     assert(asm_code);
     assert(asm_code_counter);
@@ -148,11 +148,9 @@ char* get_label(char* curr)
 {
     char* start = strchr(curr, ':');
     *start = '\0';
-    printf("start: %p", start);
     while (start > curr && !isspace(*(start-1)))
         start--;
 
-    printf("start: %p\n", start);
     return start;
 }
 
@@ -167,7 +165,7 @@ int dump_labels(label* labels)
     return 0;
 }
 
-int fix_code(label* fixup, label* labels, int* asm_code)
+int fix_code(label* fixup, label* labels, asm_data_t* asm_code)
 {
     assert(fixup);
     assert(labels);
@@ -224,7 +222,7 @@ char* skip_comment(char* curr, char* end)
     return curr;
 }
 
-int prepare_to_assemble(label** labels, label** fixup, int* asm_code, size_t* asm_code_counter)
+int prepare_to_assemble(label** labels, label** fixup, asm_data_t* asm_code, size_t* asm_code_counter)
 {
     *labels = (label*)calloc(n_labels, sizeof(label));
     if (labels == NULL)
@@ -246,7 +244,7 @@ int prepare_to_assemble(label** labels, label** fixup, int* asm_code, size_t* as
     return 0;
 }
 
-char* Compile_with_arg(char cmd, int* asm_code, size_t* asm_code_counter, char* curr, label* labels, label* fixup)
+char* Compile_with_arg(int cmd, asm_data_t* asm_code, size_t* asm_code_counter, char* curr, label* labels, label* fixup)
 {
     if (cmd == CMD_PUSH || cmd == CMD_POP)
         curr = translate_push_pop(cmd, asm_code, asm_code_counter, curr);
@@ -256,7 +254,7 @@ char* Compile_with_arg(char cmd, int* asm_code, size_t* asm_code_counter, char* 
     return curr;
 }
 
-size_t assembler(char* text, size_t text_size, int* asm_code)
+size_t assembler(char* text, size_t text_size, asm_data_t* asm_code)
 {
     assert(text);
     assert(asm_code);
@@ -270,7 +268,6 @@ size_t assembler(char* text, size_t text_size, int* asm_code)
     #define DEF_CMD(cmd, num, arg, ...) \
     if (strncmp(curr, #cmd, strlen(#cmd)) == 0) \
     { \
-        printf("command found\n"); \
         if (arg) {curr = Compile_with_arg(num, asm_code, &asm_code_counter, curr, labels, fixup);} \
         else \
         { \
@@ -283,15 +280,12 @@ size_t assembler(char* text, size_t text_size, int* asm_code)
     char* text_end = text + text_size;
     char* curr = text;
 
-    printf( "asm_code [%p]\n"
-            "text    [%p]\n", asm_code, text);
-
     while (curr < text_end)
     {
         curr = skip_space(curr, text_end);
 
-        printf("curr [%p], (%d)\n"
-            "end  [%p]\n", curr, *curr, text_end);
+        //printf("curr [%p], (%d)\n"
+        //    "end  [%p]\n", curr, *curr, text_end);
         if (curr >= text_end)
             break;
 

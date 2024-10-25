@@ -20,8 +20,8 @@ int main(int argc, char *const argv[])
 
     size_t code_size = 0;
     code_size = assembler(data.text, data.text_size, data.asm_code);
-    fwrite(data.asm_code, sizeof(int), code_size, streams_info.stream_out);
 
+    fwrite(data.asm_code, sizeof(int), code_size, streams_info.stream_out);
     fclose(streams_info.stream_out);
 
     return 0;
