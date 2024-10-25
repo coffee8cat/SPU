@@ -24,7 +24,7 @@ processor_t proc_ctor(size_t code_size);
 int proc_dtor(processor_t* proc);
 int proc_dump(processor_t* proc);
 int draw_RAM(processor_t* proc);
-int processor(processor_t* proc);
+int execute_cmds(processor_t* proc);
 
 int get_push_arg(processor_t* proc);
 int* get_pop_arg(processor_t* proc);

@@ -7,7 +7,38 @@
 
 #include "getoptions.h"
 
-bool handle_flags(char* input_file, char* output_file, int argc, char *const argv[])
+int prepare_streams(streams_data* streams_info, int argc, char *const argv[])
+{
+    assert(streams_info);
+    assert(argv);
+
+    check_flags(streams_info -> input_file, streams_info -> output_file, argc, argv);
+
+    if (strlen(streams_info -> input_file) == 0)
+        streams_info -> stream_in = stdin;
+    else
+        streams_info -> stream_in  = fopen(streams_info -> input_file, "rb");
+
+    if (strlen(streams_info -> output_file) == 0)
+        streams_info -> stream_out = stdout;
+    else
+        streams_info -> stream_out = fopen(streams_info -> output_file, "wb");
+
+
+    if (streams_info -> stream_in == NULL)
+    {
+        fprintf(stderr, "ERROR: stream is not valid (stream_in)");
+        return 1;
+    }
+    if (streams_info -> stream_out == NULL)
+    {
+        fprintf(stderr, "ERROR: stream is not valid (stream_out)");
+        return 2;
+    }
+    return 0;
+}
+
+bool check_flags(char* input_file, char* output_file, int argc, char *const argv[])
 {
     assert(input_file);
     assert(output_file);

@@ -8,6 +8,8 @@
 
 #include "my_stack.h"
 #include "assembler.h"
+#include "getoptions.h"
+#include "onegin.h"
 #include "spu.h"
 
 #define DEF_CMD(cmd, ...) #cmd,
@@ -18,6 +20,25 @@ const char *instructions_list[] {
 };
 
 #undef DEF_CMD
+
+int prepare_to_translate(asm_data* data, streams_data* streams_info)
+{
+    assert(data);
+    assert(streams_info);
+
+    data -> text = readfile(streams_info -> stream_in, &data -> text_size, data -> text);
+    if (data -> text == NULL)
+        return -1;
+
+    data -> asm_code = (int*)calloc(data -> text_size / 2, sizeof(int));
+    if (data -> asm_code == NULL)
+    {
+        fclose(streams_info -> stream_out);
+        fprintf(stderr, "CALLOC ERROR\n");
+        return -1;
+    }
+    return 0;
+}
 
 char* translate_push_pop(char cmd, int* asm_code, size_t* asm_code_counter, char* curr)
 {

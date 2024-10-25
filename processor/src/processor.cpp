@@ -32,9 +32,7 @@ proc_data_t* make_cmd_array(processor_t* proc, FILE* stream)
     assert(proc);
     assert(stream);
 
-    //printf("%d\n", proc -> code_size);
     fread(proc -> cmd_array, proc -> code_size, sizeof(int), stream);
-
     return proc -> cmd_array;
 }
 
@@ -107,7 +105,7 @@ int draw_RAM(processor_t* proc)
     return 0;
 }
 
-int processor(processor_t* proc)
+int execute_cmds(processor_t* proc)
 {
     assert(proc);
 
@@ -117,108 +115,21 @@ int processor(processor_t* proc)
     while (true)
     {
         int cmd = proc -> cmd_array[proc -> ip] & CMD_MASK;
-        printf("cmd:%d\n", cmd);
+        //printf("cmd:%d\n", cmd);
         switch (cmd)
         {
             #include "commands.h"
-            /*case PUSH: {stack_push(&proc -> data_stack, get_push_arg(proc));
-                        break;}
-            case POP:  {stack_pop(&proc -> data_stack, get_pop_arg(proc));
-                        break;}
-            case JMP:  {proc -> ip = proc -> cmd_array[proc -> ip + 1];
-                        break;}
-            case JA:   {proc_data_t a = 0;
-                        proc_data_t b = 0;
-                        stack_pop(&proc -> data_stack, &a);
-                        stack_pop(&proc -> data_stack, &b);
-                        if (b > a)
-                            proc -> ip = proc -> cmd_array[proc -> ip + 1];
-                        else
-                            proc -> ip = proc -> ip + 2;
-                        break;}
-            case CALL: {stack_push(&proc -> call_stack, proc -> ip + 2);
-                        proc -> ip = proc -> cmd_array[proc -> ip + 1];
-                        break;}
-            case RTN:  {stack_pop(&proc -> call_stack, &proc -> ip);
-                        break;}
-
-            case DRAW: {draw_RAM(proc);
-                        proc ->ip++;
-                        break;}
-
-            case ELEM_IN: {int arg = 0;
-                           fscanf(stdin, "%d", &arg);
-                           stack_push(&proc -> data_stack, arg);
-                           proc -> ip++;
-                           break;}
-            case ELEM_OUT:{int arg = 0;
-                           stack_pop(&proc -> data_stack, &arg);
-                           printf("%d\n", arg);
-                           proc -> ip++;
-                           break;}
-
-            case ADD: {int a = 0;
-                       int b = 0;
-                       stack_pop(&proc -> data_stack, &a);
-                       stack_pop(&proc -> data_stack, &b);
-                       stack_push(&proc -> data_stack, b + a);
-                       proc -> ip++;
-                       break;}
-            case SUB: {int a = 0;
-                       int b = 0;
-                       stack_pop(&proc -> data_stack, &a);
-                       stack_pop(&proc -> data_stack, &b);
-                       stack_push(&proc -> data_stack, b - a);
-                       proc -> ip++;
-                       break;}
-            case MULT:{int a = 0;
-                       int b = 0;
-                       stack_pop(&proc -> data_stack, &a);
-                       stack_pop(&proc -> data_stack, &b);
-                       stack_push(&proc -> data_stack, b * a);
-                       proc -> ip++;
-                       break;}
-            case DIV: {int a = 0;
-                       int b = 0;
-                       stack_pop(&proc -> data_stack, &a);
-                       stack_pop(&proc -> data_stack, &b);
-                       stack_push(&proc -> data_stack, b / a);
-                       proc -> ip++;
-                       break;}
-
-            case SQRT:{int a = 0;
-                       stack_pop(&proc -> data_stack, &a);
-                       stack_push(&proc -> data_stack, sqrt(a));
-                       proc -> ip++;
-                       break;}
-            case COS: {int a = 0;
-                       stack_pop (&proc -> data_stack, &a);
-                       stack_push(&proc -> data_stack, cos(a));
-                       proc -> ip++;
-                       break;}
-            case SIN: {int a = 0;
-                       stack_pop (&proc -> data_stack, &a);
-                       stack_push(&proc -> data_stack, sin(a));
-                       proc -> ip++;
-                       break;}
-
-            case DUMP:{proc_dump(proc);
-                       proc -> ip++;
-                       break;}
-
-            case HLT:{return 0;}
-            */
             default:{fprintf(stderr, "ERROR: UNKNOWN COMMAND [%d]\n", cmd);
                      break;}
         }
-
-        #undef DEF_CMD
-
-        /*(proc -> ip)++;
-        proc_dump(proc);
+        (proc -> ip)++;
+        /*proc_dump(proc);
         int a = 0;
         scanf("%d", &a);*/
     }
+
+    #undef DEF_CMD
+    return 0;
 }
 
 proc_data_t get_push_arg(processor_t* proc)
@@ -232,7 +143,6 @@ proc_data_t get_push_arg(processor_t* proc)
     if (arg_type & REG_ARG_MASK) { arg_value += proc -> registers[proc -> cmd_array[(proc -> ip)++]];}
     if (arg_type & MEM_ARG_MASK) { arg_value =  proc -> RAM[arg_value];}
 
-    //(proc -> ip)--;
     return arg_value;
 }
 
@@ -247,7 +157,6 @@ proc_data_t* get_pop_arg(processor_t* proc)
     {
         if (arg_type & NUM_ARG_MASK){ arg_value =  proc -> cmd_array[(proc -> ip)++];}
         if (arg_type & REG_ARG_MASK){ arg_value += proc -> registers[proc -> cmd_array[(proc -> ip)++]];}
-        //(proc -> ip)--;
         return &proc -> RAM[arg_value];
     }
     else

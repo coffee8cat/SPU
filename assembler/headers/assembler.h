@@ -1,12 +1,21 @@
 #ifndef _ASSEMBLER_FOR_MY_SPU_H__
 #define _ASSEMBLER_FOR_MY_SPU_H__
 
+#include "getoptions.h"
+
+struct asm_data {
+    char* text;
+    size_t text_size;
+    int* asm_code;
+};
 struct label{
     int ip;
     char* name;
 };
 
 const size_t n_labels = 16;
+
+int prepare_to_translate(asm_data* data, streams_data* streams_info);
 
 char* Compile_with_arg     (char cmd, int* asm_code, size_t* asm_code_counter, char* curr, label* labels, label* fixup);
 char* translate_push_pop   (char cmd, int* asm_code, size_t* asm_code_counter, char* curr);

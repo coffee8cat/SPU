@@ -15,12 +15,18 @@ PUSH BX
 JA next:
 
 PUSH BX
-MULT
+
 PUSH BX
 PUSH 1
 SUB
 POP BX
 CALL fact:
+MULT
 
 next:
 RTN
+
+;n * fact ( n - 1)
+
+;fact(n + 1) * n;
+;fact(n - 1)

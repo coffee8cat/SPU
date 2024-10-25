@@ -3,6 +3,7 @@
 char* readfile(FILE* fp, size_t* text_size, char* text)
 {
     assert(fp);
+    assert(text_size);
 
     *text_size = get_file_size(fp);
     printf("%d\n", *text_size);
