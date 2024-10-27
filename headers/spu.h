@@ -4,7 +4,7 @@
 #define CURRENT_VERSION 3
 #define PROC_SIGNATURE 4341
 
-typedef int asm_data_t;
+typedef double asm_data_t;
 typedef double proc_data_t;
 const double ACCURACY = 10000;
 

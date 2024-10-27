@@ -22,7 +22,11 @@ DO_CALL_PUSH(IP + 2)
 IP = CMD_ARRAY[IP + 1];
 IP--;)
 /////////////////////////////////////////////////////////
-DEF_CMD(RTN,  5, false, DO_CALL_POP(&IP) IP--;)
+DEF_CMD(RTN,  5, false,
+proc_data_t arg = 0;
+DO_CALL_POP(&arg)
+IP = (size_t)arg;
+IP--;)
 /////////////////////////////////////////////////////////
 DEF_CMD(ELEM_IN,   6, false,
 proc_data_t arg = 0;

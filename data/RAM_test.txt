@@ -1,77 +1,78 @@
-2
-4341
-
-
-push 0
-pop AX
-push 0
-push BX
-push 20
-pop CX
-push 10
-pop DX
+PUSH 0
+POP AX
+PUSH 0
+PUSH BX
+PUSH 10
+POP CX
+PUSH 10
+POP DX
 
 start:
-push BX
-push 1
-add
-pop BX
+    PUSH BX
+    PUSH 1
+    ADD
+    POP BX
 
 line:
-push AX
-push 2
-add
-pop AX
+    PUSH AX
+    PUSH 1
+    ADD
+    POP AX
 
-push AX ; start position calculation
-push 5
-sub
-push AX
-push 5
-sub
-mult
-push BX
-push 5
-sub
-push BX
-push 5
-sub
-mult
-add
-push 4
-push 4
-mult
-sub
+    PUSH AX ; start position calculation
+    PUSH 5
+    SUB
+    PUSH AX
+    PUSH 5
+    SUB
 
-push 0
+    MULT
+    PUSH BX
+    PUSH 5
+    SUB
+    PUSH BX
+    PUSH 5
+    SUB
+
+    MULT
+    ADD
+    PUSH 4
+    PUSH 4
+    MULT
+    SUB
+
+    PUSH 0
 JA miss:
 
-push 10
-push BX
-mult
-push AX
-add
-pop EX
-push 1
-pop [EX]
-push EX
-push 1
-add
-pop EX
-push 1
-pop [EX]
+    PUSH 20
+    PUSH BX
+    MULT
+    PUSH 2
+    PUSH AX
+    MULT
+    ADD
+    POP EX
+    PUSH 1
+    POP [EX]
+    PUSH EX
+    PUSH 1
+    SUB
+    POP EX
+    PUSH 1
+    POP [EX]
 
 miss:
-push CX
-push AX
+    PUSH CX
+    PUSH AX
+
 JA line:
 
-push 0
-pop AX
+    PUSH 0
+    POP AX
 
-push DX
-push BX
+    PUSH DX
+    PUSH BX
 JA start:
 
-dump
-hlt
+DUMP
+HLT

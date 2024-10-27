@@ -49,7 +49,7 @@ char* translate_push_pop(int cmd, asm_data_t* asm_code, size_t* asm_code_counter
     char* arg_ptr = curr + strlen(instructions_list[cmd]) + 1; // + 1 for space
 
     int reg_arg_value = -1;
-    int num_arg_value = -1;
+    proc_data_t num_arg_value = -1;
     if (*arg_ptr == '[')
     {
         cmd = cmd | MEM_ARG_MASK;
@@ -57,7 +57,7 @@ char* translate_push_pop(int cmd, asm_data_t* asm_code, size_t* asm_code_counter
     }
     if ((*arg_ptr - '0' > 9) || (*arg_ptr - '0' < 0))
     {
-        if ((*arg_ptr - 'A' < 8) & (*arg_ptr -'A' > 0))
+        if ((*arg_ptr - 'A' < 8) & (*arg_ptr -'A' >= 0))
         {
             reg_arg_value = *arg_ptr - 'A';
         }
@@ -74,7 +74,7 @@ char* translate_push_pop(int cmd, asm_data_t* asm_code, size_t* asm_code_counter
     }
     if ((*arg_ptr - '0' <= 9) && (*arg_ptr - '0' >= 0))
     {
-        num_arg_value = round(ACCURACY * atof(arg_ptr));
+        num_arg_value = atof(arg_ptr);
         cmd = cmd | NUM_ARG_MASK;
     }
 
@@ -319,7 +319,7 @@ size_t assembler(char* text, size_t text_size, asm_data_t* asm_code)
 
     for (size_t i = 0; i < asm_code_counter; i++)
     {
-        printf("%3d: %d\n", i, asm_code[i]);
+        printf("%3d: %lf\n", i, asm_code[i]);
     }
 
     txDump(asm_code);

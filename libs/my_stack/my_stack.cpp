@@ -105,7 +105,7 @@ stack_err stack_dump(stack_t* stack, const char* call_file, size_t call_line, co
     #endif
 
     #ifdef HASH_PROTECTION
-    printf("hash         [%llX] at (%p)\n", stack -> data_hash_sum, (void*)&stack -> data_hash_sum);
+    //printf("hash         [%llX] at (%p)\n", stack -> data_hash_sum, (void*)&stack -> data_hash_sum);
     #endif
 
     for (size_t i = 0; i < stack -> capacity; i++)

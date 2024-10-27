@@ -13,8 +13,8 @@ int main(int argc, char *const argv[])
 
     if (check_compatibility(streams_info.stream_in) == 0)
     {
-        size_t code_size = 0;
-        fread(&code_size, 1, sizeof(int), streams_info.stream_in);
+        asm_data_t code_size = 0;
+        fread(&code_size, 1, sizeof(asm_data_t), streams_info.stream_in);
         processor_t proc = proc_ctor(code_size);
         make_cmd_array(&proc, streams_info.stream_in);
 

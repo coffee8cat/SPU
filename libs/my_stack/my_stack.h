@@ -72,7 +72,7 @@ enum stack_err {
     RIGHT_DATA_CANARY_DIED  = 1 << 8
 };
 
-typedef uint64_t stack_elem_t;
+typedef double stack_elem_t;
 typedef uint64_t canary_t;
 
 struct stack_t {
