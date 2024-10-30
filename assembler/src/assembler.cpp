@@ -55,7 +55,7 @@ char* translate_push_pop(int cmd, asm_data_t* asm_code, size_t* asm_code_counter
         cmd = cmd | MEM_ARG_MASK;
         arg_ptr++;
     }
-    if ((*arg_ptr - '0' > 9) || (*arg_ptr - '0' < 0))
+    if ((*arg_ptr - '0' > 9) || (*arg_ptr - '0' < 0) && (*arg_ptr != '-'))
     {
         if ((*arg_ptr - 'A' < 8) & (*arg_ptr -'A' >= 0))
         {
@@ -72,7 +72,7 @@ char* translate_push_pop(int cmd, asm_data_t* asm_code, size_t* asm_code_counter
 
         cmd = cmd | REG_ARG_MASK;
     }
-    if ((*arg_ptr - '0' <= 9) && (*arg_ptr - '0' >= 0))
+    if ((*arg_ptr - '0' <= 9) && (*arg_ptr - '0' >= 0) || (*arg_ptr == '-'))
     {
         num_arg_value = atof(arg_ptr);
         cmd = cmd | NUM_ARG_MASK;
@@ -304,15 +304,16 @@ size_t assembler(char* text, size_t text_size, asm_data_t* asm_code)
         }
         fprintf(stderr, "ERROR: COMMAND CANNOT BE UNDERSTOOD\n");
         printf("%s\n", curr);
+        fprintf(stderr, "ERROR: COMMAND CANNOT BE UNDERSTOOD\n");
         return 0;
     }
 
     #undef DEF_CMD
 
-    /*printf("---LABELS---\n");
+    printf("---LABELS---\n");
     dump_labels(labels);
     printf("---FIXUP---\n");
-    dump_labels(fixup);*/
+    dump_labels(fixup);
 
     fix_code(fixup, labels, asm_code);
     asm_code[2] = asm_code_counter - 3;

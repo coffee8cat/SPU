@@ -1,0 +1,104 @@
+;Main info
+; AX BX CX - coeffs for square equation
+;Destroys DX
+
+ELEM_IN
+POP AX
+ELEM_IN
+POP BX
+ELEM_IN
+POP CX
+
+PUSH 0.000001
+PUSH AX
+PUSH AX
+MULT
+JA check_linear: ;if A == 0
+
+CALL SQUARE:     ;if A != 0
+ELEM_OUT
+ELEM_OUT
+HLT
+
+check_linear:
+PUSH 0.000001
+PUSH BX
+PUSH BX
+MULT
+JA check_C_coef: ;if B == 0
+
+CALL LINEAR:     ;if B != 0
+ELEM_OUT
+HLT
+
+check_C_coef:
+PUSH 0.000001
+PUSH CX
+PUSH CX
+MULT
+
+JA inf_roots:
+
+NO_ROOTS:
+PUSH -666
+ELEM_OUT
+HLT
+
+inf_roots:
+PUSH -1
+ELEM_OUT
+PUSH -1
+ELEM_OUT
+PUSH -1
+ELEM_OUT
+HLT
+
+SQUARE:  ;writes two roots to the top of stack if at least one exists
+PUSH BX
+PUSH BX
+MULT
+PUSH 4
+PUSH AX
+PUSH CX
+MULT
+MULT
+SUB
+POP DX
+
+PUSH 0
+PUSH DX
+JA SKIP: ; D < 0
+
+PUSH DX
+SQRT
+PUSH 2
+DIV
+POP DX
+
+PUSH BX
+PUSH -0.5
+MULT
+PUSH DX
+SUB
+
+PUSH BX
+PUSH -0.5
+MULT
+PUSH DX
+ADD
+
+RTN
+
+SKIP:
+PUSH -666
+PUSH -666
+RTN
+
+LINEAR:
+PUSH -1
+PUSH CX
+MULT
+PUSH BX
+DIV
+
+RTN
