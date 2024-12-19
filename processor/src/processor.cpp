@@ -10,6 +10,8 @@
 
 int check_compatibility(FILE* stream)
 {
+    assert(stream);
+
     asm_data_t version = 0;
     asm_data_t signature = 0;
     fread(&version,   1, sizeof(asm_data_t), stream);
@@ -32,11 +34,11 @@ asm_data_t* make_cmd_array(processor_t* proc, FILE* stream)
     assert(proc);
     assert(stream);
 
-    printf("---------------------------------------\n---------------------------------\n---------------\n");
-    printf("code size: %d\n",  proc -> code_size);
+    //printf("code size: %d\n",  proc -> code_size);
+
     fread(proc -> cmd_array, (size_t)proc -> code_size, sizeof(asm_data_t), stream);
-    for (size_t i = 0; i < proc -> code_size; i++)
-        printf("%lf\n", proc -> cmd_array[i]);
+    //for (size_t i = 0; i < proc -> code_size; i++)
+    //    printf("%lf\n", proc -> cmd_array[i]);
     return proc -> cmd_array;
 }
 
@@ -47,6 +49,7 @@ processor_t proc_ctor(size_t code_size)
     if (proc.cmd_array == NULL)
     {
         fprintf(stderr, "CALLOC ERROR\n");
+        assert(proc.cmd_array);
         return proc;
     }
     proc.ip = 0;
@@ -83,7 +86,15 @@ int proc_dump(processor_t* proc)
     {
         printf("%3d: %lf\n", i, proc->registers[i]);
     }
-    draw_RAM(proc);
+
+    for (size_t i = 0; i < 10; i++)
+    {
+        for (size_t j = 0; j < 10; j++)
+        {
+            printf("%3lg ", proc -> RAM[i*10+j]);
+        }
+        printf("\n");
+    }
     return 0;
 }
 
@@ -94,7 +105,7 @@ int draw_RAM(processor_t* proc)
     {
         for (size_t index = 0; index < draw_line_length; index++)
             {
-                if(proc -> RAM[line * draw_line_length + index] == 0) //////////double???
+                if(proc -> RAM[line * draw_line_length + index] == 0)
                     printf(".");
                 else
                     printf("*");
@@ -139,9 +150,9 @@ proc_data_t get_push_arg(processor_t* proc)
     int arg_type = (int)proc -> cmd_array[proc -> ip] & TYPE_MASK;
     (proc -> ip)++;
     proc_data_t arg_value = 0;
-    if (arg_type & NUM_ARG_MASK) { arg_value =  proc -> cmd_array[(proc -> ip)++];}
-    if (arg_type & REG_ARG_MASK) { arg_value += proc -> registers[(size_t)proc -> cmd_array[(proc -> ip)++]];}
-    if (arg_type & MEM_ARG_MASK) { arg_value =  proc -> RAM[(size_t)arg_value];}
+    if (arg_type & REG_ARG_MASK) { arg_value +=  proc -> registers[(size_t)proc -> cmd_array[(proc -> ip)++]];}
+    if (arg_type & NUM_ARG_MASK) { arg_value +=  proc -> cmd_array[(proc -> ip)++];}
+    if (arg_type & MEM_ARG_MASK) { arg_value  =  proc -> RAM[(size_t)arg_value];}
 
     return arg_value;
 }
@@ -155,8 +166,8 @@ proc_data_t* get_pop_arg(processor_t* proc)
     asm_data_t arg_value = 0;
     if (arg_type & MEM_ARG_MASK)
     {
-        if (arg_type & NUM_ARG_MASK){ arg_value =  proc -> cmd_array[(proc -> ip)++];}
         if (arg_type & REG_ARG_MASK){ arg_value += (asm_data_t)proc -> registers[(size_t)proc -> cmd_array[(proc -> ip)++]];}
+        if (arg_type & NUM_ARG_MASK){ arg_value +=  proc -> cmd_array[(proc -> ip)++];}
         return &proc -> RAM[(size_t)arg_value];
     }
     else
@@ -164,7 +175,7 @@ proc_data_t* get_pop_arg(processor_t* proc)
         if (arg_type & REG_ARG_MASK) { return &proc -> registers[(size_t)proc -> cmd_array[(proc -> ip)++]];}
         else
         {
-            fprintf(stderr, "ERROR: INVALID ARGUMENT FOR get_pop_arg: %d\n", arg_type);
+            fprintf(stderr, "ERROR: INVALID ARGUMENT FOR get_pop_arg: %d on IP = %d\n", arg_type, proc -> ip);
             return NULL;
         }
     }

@@ -1,43 +1,31 @@
 
-; Assignment
-PUSH 4
-POP [0]
-
-; Assignment End
-
-; Assignment
-
 ;CALL Save current BX
 PUSH BX
 
 
 ;push call params
-PUSH [0]
+PUSH 4
 
 ; BX_shift
-PUSH 2
+PUSH 0
 PUSH BX
 ADD
 POP BX
 
-CALL FACTORIAL:
+CALL feed:
 PUSH AX
 ; CALL END
-POP [1]
-
-; Assignment End
-PUSH [1]
 ELEM_OUT
 JMP func0:
 
 ; FUNCTION DEFINITION
-FACTORIAL:
+feed:
 
 POP [BX+0]
 
 ; IF
 ; condition
-PUSH 1
+PUSH 0
 PUSH [BX+0]
 
 ; test condition
@@ -53,16 +41,25 @@ RTN
 
 endif0:
 
-; Assignment
-PUSH [BX+0]
+; IF
+; condition
 PUSH 1
+PUSH [BX+0]
 
-SUB
-POP [BX+1]
+; test condition
 
-; Assignment End
+JNE endif2:
+; body
 
-; Assignment
+; RETURN
+PUSH 1
+POP AX
+POP BX
+RTN
+
+endif2:
+
+; RETURN
 PUSH [BX+0]
 
 ;CALL Save current BX
@@ -70,25 +67,22 @@ PUSH BX
 
 
 ;push call params
-PUSH [BX+1]
+PUSH [BX+0]
+PUSH 1
+
+SUB
 
 ; BX_shift
-PUSH 2
+PUSH 1
 PUSH BX
 ADD
 POP BX
 
-CALL FACTORIAL:
+CALL feed:
 PUSH AX
 ; CALL END
 
 MUL
-POP [BX+1]
-
-; Assignment End
-
-; RETURN
-PUSH [BX+1]
 POP AX
 POP BX
 RTN

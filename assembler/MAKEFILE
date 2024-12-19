@@ -1,3 +1,5 @@
+SHELL=C:/Windows/System32/cmd.exe
+
 CC = g++
 
 CFLAGS = -Wformat=2 -Wshadow -Winit-self -Wredundant-decls -Wcast-align -Wundef -Wfloat-equal \

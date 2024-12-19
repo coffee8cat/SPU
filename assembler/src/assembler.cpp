@@ -33,6 +33,7 @@ int prepare_to_translate(asm_data* data, streams_data* streams_info)
     data -> asm_code = (asm_data_t*)calloc(data -> text_size / 2, sizeof(int));
     if (data -> asm_code == NULL)
     {
+        fclose(streams_info -> stream_in);
         fclose(streams_info -> stream_out);
         fprintf(stderr, "CALLOC ERROR\n");
         return -1;
@@ -63,7 +64,7 @@ char* translate_push_pop(int cmd, asm_data_t* asm_code, size_t* asm_code_counter
         }
         else
         {
-            fprintf(stderr, "INVALID ARGUMENT FOR POP: %s\n", arg_ptr);
+            fprintf(stderr, "INVALID ARGUMENT FOR PUSH/POP: %s\n", arg_ptr);
             return NULL;
         }
         arg_ptr = arg_ptr + 2;
@@ -195,6 +196,7 @@ int fix_code(label* fixup, label* labels, asm_data_t* asm_code)
     }
     return 0;
 }
+
 char* skip_until_space(char* curr)
 {
     assert(curr);
@@ -266,6 +268,7 @@ size_t assembler(char* text, size_t text_size, asm_data_t* asm_code)
     prepare_to_assemble(&labels, &fixup, asm_code, &asm_code_counter);
 
     #define DEF_CMD(cmd, num, arg, ...) \
+    printf("cmd: %s\n", #cmd);\
     if (strncmp(curr, #cmd, strlen(#cmd)) == 0) \
     { \
         if (arg) {curr = Compile_with_arg(num, asm_code, &asm_code_counter, curr, labels, fixup);} \
@@ -284,8 +287,8 @@ size_t assembler(char* text, size_t text_size, asm_data_t* asm_code)
     {
         curr = skip_space(curr, text_end);
 
-        //printf("curr [%p], (%d)\n"
-        //    "end  [%p]\n", curr, *curr, text_end);
+        printf("curr [%p], (%d)\n"
+               "end  [%p]\n", curr, *curr, text_end);
         if (curr >= text_end)
             break;
 
@@ -303,8 +306,9 @@ size_t assembler(char* text, size_t text_size, asm_data_t* asm_code)
             continue;
         }
         fprintf(stderr, "ERROR: COMMAND CANNOT BE UNDERSTOOD\n");
+        char* end = strchr(curr, '\n');
+        *end = '\0';
         printf("%s\n", curr);
-        fprintf(stderr, "ERROR: COMMAND CANNOT BE UNDERSTOOD\n");
         return 0;
     }
 

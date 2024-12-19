@@ -33,6 +33,7 @@ int prepare_streams(streams_data* streams_info, int argc, char *const argv[])
     if (streams_info -> stream_out == NULL)
     {
         fprintf(stderr, "ERROR: stream is not valid (stream_out)");
+        fclose(streams_info -> stream_in);
         return 2;
     }
     return 0;

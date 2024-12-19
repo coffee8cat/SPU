@@ -1,22 +1,11 @@
-2
-4341
-push 0
-pop AX
+PUSH 7
+POP BX
 
-next:
+PUSH 99
+POP [14]
 
-push AX
-push AX
-mult
-out
+PUSH [BX+7]
 
-push AX
-push 1
-add
+ELEM_OUT
 
-pop AX
-push 10
-push AX
-
-JA next:
-hlt
+HLT

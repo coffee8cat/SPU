@@ -1,11 +1,11 @@
-PUSH 0
-POP AX
-PUSH 0
-PUSH BX
-PUSH 10
-POP CX
-PUSH 10
-POP DX
+    PUSH 0
+    POP AX
+    PUSH 0
+    PUSH BX
+    PUSH 10
+    POP CX
+    PUSH 10
+    POP DX
 
 start:
     PUSH BX
