@@ -1,0 +1,93 @@
+
+;CALL Save current BX
+PUSH BX
+
+
+;push call params
+PUSH 4
+
+; BX_shift
+PUSH 0
+PUSH BX
+ADD
+POP BX
+
+CALL feed:
+PUSH AX
+; CALL END
+ELEM_OUT
+JMP func0:
+
+; FUNCTION DEFINITION
+feed:
+
+POP [BX+0]
+
+; IF
+; condition
+PUSH 0
+PUSH [BX+0]
+
+; test condition
+
+JNE endif0:
+; body
+
+; RETURN
+PUSH 1
+POP AX
+POP BX
+RTN
+
+endif0:
+
+; IF
+; condition
+PUSH 1
+PUSH [BX+0]
+
+; test condition
+
+JNE endif2:
+; body
+
+; RETURN
+PUSH 1
+POP AX
+POP BX
+RTN
+
+endif2:
+
+; RETURN
+PUSH [BX+0]
+
+;CALL Save current BX
+PUSH BX
+
+
+;push call params
+PUSH [BX+0]
+PUSH 1
+
+SUB
+
+; BX_shift
+PUSH 1
+PUSH BX
+ADD
+POP BX
+
+CALL feed:
+PUSH AX
+; CALL END
+
+MUL
+POP AX
+POP BX
+RTN
+
+func0:
+
+
+HLT

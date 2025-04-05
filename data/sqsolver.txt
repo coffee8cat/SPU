@@ -1,0 +1,279 @@
+
+; Assignment
+PUSH 0
+PUSH 5
+
+SUB
+POP [0]
+
+; Assignment End
+
+; Assignment
+PUSH 1
+POP [1]
+
+; Assignment End
+
+; Assignment
+PUSH 2
+POP [2]
+
+; Assignment End
+
+; Assignment
+
+;CALL Save current BX
+PUSH BX
+
+
+;push call params
+PUSH [0]
+PUSH [1]
+PUSH [2]
+
+; BX_shift
+PUSH 6
+PUSH BX
+ADD
+POP BX
+
+CALL SQSOLVER:
+PUSH AX
+; CALL END
+POP [5]
+
+; Assignment End
+PUSH [5]
+ELEM_OUT
+PUSH [3]
+ELEM_OUT
+PUSH [4]
+ELEM_OUT
+JMP func0:
+
+; FUNCTION DEFINITION
+LINEAR:
+
+POP [BX+0]
+POP [BX+1]
+
+; IF
+; condition
+PUSH 0
+PUSH [BX+1]
+
+; test condition
+
+JNE endif0:
+; body
+
+; IF
+; condition
+PUSH 0
+PUSH [BX+0]
+
+; test condition
+
+JNE endif1:
+; body
+
+; RETURN
+PUSH 5
+POP AX
+POP BX
+RTN
+
+endif1:
+
+; RETURN
+PUSH 0
+POP AX
+POP BX
+RTN
+
+endif0:
+
+; Assignment
+PUSH [BX+0]
+PUSH [BX+1]
+
+DIV
+POP [3]
+
+; Assignment End
+
+; RETURN
+PUSH 1
+POP AX
+POP BX
+RTN
+
+func0:
+JMP func1:
+
+; FUNCTION DEFINITION
+SQSOLVER:
+
+POP [BX+0]
+POP [BX+1]
+POP [BX+2]
+
+; IF
+; condition
+PUSH 0
+PUSH [BX+2]
+
+; test condition
+
+JNE endif4:
+; body
+
+; RETURN
+
+;CALL Save current BX
+PUSH BX
+
+
+;push call params
+PUSH [BX+1]
+PUSH [BX+0]
+
+; BX_shift
+PUSH 4
+PUSH BX
+ADD
+POP BX
+
+CALL LINEAR:
+PUSH AX
+; CALL END
+POP AX
+POP BX
+RTN
+
+endif4:
+
+; Assignment
+PUSH [BX+1]
+PUSH [BX+1]
+
+MUL
+PUSH [BX+0]
+PUSH [BX+2]
+
+MUL
+PUSH 4
+
+MUL
+
+SUB
+POP [BX+3]
+
+; Assignment End
+
+; IF
+; condition
+PUSH 0
+PUSH [BX+3]
+
+; test condition
+
+JNE endif6:
+; body
+
+; Assignment
+PUSH 0
+PUSH [BX+1]
+PUSH 2
+
+DIV
+
+SUB
+POP [3]
+
+; Assignment End
+
+; RETURN
+PUSH 1
+POP AX
+POP BX
+RTN
+
+endif6:
+
+; IF
+; condition
+PUSH 0
+PUSH [BX+3]
+
+; test condition
+
+JA endif8:
+; body
+
+; Assignment
+PUSH [BX+3]
+PUSH 1
+PUSH 2
+
+DIV
+
+POW
+POP [BX+3]
+
+; Assignment End
+
+; Assignment
+PUSH 0
+PUSH [BX+1]
+PUSH [BX+3]
+
+ADD
+PUSH 2
+PUSH [BX+2]
+
+MUL
+
+DIV
+
+SUB
+POP [3]
+
+; Assignment End
+
+; Assignment
+PUSH 0
+PUSH [BX+1]
+PUSH [BX+3]
+
+SUB
+PUSH 2
+PUSH [BX+2]
+
+MUL
+
+DIV
+
+SUB
+POP [4]
+
+; Assignment End
+
+; RETURN
+PUSH 2
+POP AX
+POP BX
+RTN
+
+endif8:
+
+; RETURN
+PUSH [BX+3]
+POP AX
+POP BX
+RTN
+
+func1:
+
+
+HLT

@@ -1,0 +1,28 @@
+2
+4341
+push 0
+pop AX
+
+
+CALL LINEAR:
+
+LINEAR:
+push AX
+push AX
+mult
+out
+
+push AX
+push 1
+add
+
+pop AX
+push AX
+push 10
+
+JA next:
+CALL LINEAR:
+RTN
+
+next:
+hlt

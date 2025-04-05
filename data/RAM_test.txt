@@ -1,0 +1,78 @@
+    PUSH 0
+    POP AX
+    PUSH 0
+    PUSH BX
+    PUSH 10
+    POP CX
+    PUSH 10
+    POP DX
+
+start:
+    PUSH BX
+    PUSH 1
+    ADD
+    POP BX
+
+line:
+    PUSH AX
+    PUSH 1
+    ADD
+    POP AX
+
+    PUSH AX ; start position calculation
+    PUSH 5
+    SUB
+    PUSH AX
+    PUSH 5
+    SUB
+
+    MULT
+    PUSH BX
+    PUSH 5
+    SUB
+    PUSH BX
+    PUSH 5
+    SUB
+
+    MULT
+    ADD
+    PUSH 4
+    PUSH 4
+    MULT
+    SUB
+
+    PUSH 0
+JA miss:
+
+    PUSH 20
+    PUSH BX
+    MULT
+    PUSH 2
+    PUSH AX
+    MULT
+    ADD
+    POP EX
+    PUSH 1
+    POP [EX]
+    PUSH EX
+    PUSH 1
+    SUB
+    POP EX
+    PUSH 1
+    POP [EX]
+
+miss:
+    PUSH CX
+    PUSH AX
+
+JA line:
+
+    PUSH 0
+    POP AX
+
+    PUSH DX
+    PUSH BX
+JA start:
+
+DUMP
+HLT

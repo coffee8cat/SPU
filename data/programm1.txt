@@ -1,16 +1,11 @@
-push 30
-push 70
-add
-push 80
-push 60
-sub
-dump
+PUSH 7
+POP BX
 
-out
-sqrt
-push 30
-push 5
-div
-dump
+PUSH 99
+POP [14]
 
-hlt
+PUSH [BX+7]
+
+ELEM_OUT
+
+HLT
