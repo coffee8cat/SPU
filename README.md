@@ -46,3 +46,9 @@ List of implemented operations: ADD, SUB, MUL, DIV, SQRT, COS, SIN, POW.
 
 ### Instructions desription
 For instruction set desription and modification view `/headers/commands.h` - all instructions described using DSL - view `/headers/DSL_description.h` for details.
+
+## Test setup
+
+- **CPU**: AMD Ryzen 5 4600H with Radeon Graphics 3.00 GHz
+- **OS**: W10
+- **Compiler**: g++ 13.3.0
